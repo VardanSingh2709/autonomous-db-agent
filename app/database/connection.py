@@ -17,8 +17,30 @@ def test_connection():
     with engine.connect() as connection:
         result = connection.execute(text("SELECT 1"))
         return result.scalar()
+    
+
+def run_query(sql: str, params: dict = None):
+    """
+    Executes a SQL query and returns the results as a list of dictionaries.
+
+    sql: the SQL string to run, with optional named placeholders like :region
+    params: a dictionary of values to safely substitute into those placeholders
+
+    Example:
+        run_query("SELECT * FROM regions WHERE name = :region", {"region": "North"})
+    """
+    with engine.connect() as connection:
+        result = connection.execute(text(sql), params or {})
+        rows = result.mappings().all()
+        return [dict(row) for row in rows]
 
 
 if __name__ == "__main__":
     value = test_connection()
     print(f"Connection successful. Test query returned: {value}")
+
+    regions = run_query("SELECT * FROM regions")
+    print("Regions:", regions)
+
+    north_only = run_query("SELECT * FROM regions WHERE name = :region", {"region": "North"})
+    print("Filtered:", north_only)
