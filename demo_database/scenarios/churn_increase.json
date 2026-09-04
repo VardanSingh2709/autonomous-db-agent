@@ -1,0 +1,21 @@
+{
+  "scenario_id": "churn_increase_q3",
+  "question": "Why did churn increase in Q3?",
+  "period_comparison": {
+    "q2_range": ["2024-04-01", "2024-06-30"],
+    "q3_range": ["2024-07-01", "2024-09-30"]
+  },
+  "ground_truth": {
+    "by_tier": {
+      "Basic":      { "q2_active_start": 30, "q2_cancelled": 2, "q2_churn_pct": 6.67, "q3_active_start": 28, "q3_cancelled": 2, "q3_churn_pct": 7.14 },
+      "Premium":    { "q2_active_start": 30, "q2_cancelled": 2, "q2_churn_pct": 6.67, "q3_active_start": 28, "q3_cancelled": 7, "q3_churn_pct": 25.00 },
+      "Enterprise": { "q2_active_start": 30, "q2_cancelled": 1, "q2_churn_pct": 3.33, "q3_active_start": 29, "q3_cancelled": 1, "q3_churn_pct": 3.45 }
+    },
+    "root_cause": {
+      "tier": "Premium",
+      "q2_churn_pct": 6.67,
+      "q3_churn_pct": 25.00,
+      "explanation": "Churn increased sharply in Q3, driven almost entirely by the Premium tier, whose churn rate jumped from 6.67% to 25.00% while Basic and Enterprise tiers remained stable at roughly 7% and 3.4% respectively."
+    }
+  }
+}

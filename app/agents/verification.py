@@ -71,3 +71,38 @@ def verify_revenue_decline_claim(region: str, product: str, claimed_q2: float, c
         params={"region": region, "product": product},
         claimed_values={"q2_revenue": claimed_q2, "q3_revenue": claimed_q3}
     )
+
+
+def verify_churn_claim(tier: str, claimed_q2_rate: float, claimed_q3_rate: float) -> dict:
+    """Scenario-specific wrapper for the churn increase investigation."""
+    sql = """
+    WITH q2_active AS (
+        SELECT COUNT(*) AS active_start FROM subscriptions
+        WHERE tier = :tier AND start_date < '2024-04-01'
+          AND (end_date IS NULL OR end_date >= '2024-04-01')
+    ),
+    q2_cancelled AS (
+        SELECT COUNT(*) AS cancelled FROM subscriptions
+        WHERE tier = :tier AND status = 'cancelled'
+          AND end_date >= '2024-04-01' AND end_date < '2024-07-01'
+    ),
+    q3_active AS (
+        SELECT COUNT(*) AS active_start FROM subscriptions
+        WHERE tier = :tier AND start_date < '2024-07-01'
+          AND (end_date IS NULL OR end_date >= '2024-07-01')
+    ),
+    q3_cancelled AS (
+        SELECT COUNT(*) AS cancelled FROM subscriptions
+        WHERE tier = :tier AND status = 'cancelled'
+          AND end_date >= '2024-07-01' AND end_date < '2024-10-01'
+    )
+    SELECT
+        ROUND(q2c.cancelled::numeric / NULLIF(q2a.active_start, 0) * 100, 2) AS q2_churn_pct,
+        ROUND(q3c.cancelled::numeric / NULLIF(q3a.active_start, 0) * 100, 2) AS q3_churn_pct
+    FROM q2_active q2a, q2_cancelled q2c, q3_active q3a, q3_cancelled q3c;
+    """
+    return verify_aggregate_claim(
+        sql=sql,
+        params={"tier": tier},
+        claimed_values={"q2_churn_pct": claimed_q2_rate, "q3_churn_pct": claimed_q3_rate}
+    )
