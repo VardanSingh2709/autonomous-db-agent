@@ -9,7 +9,7 @@ from groq import Groq, RateLimitError, InternalServerError, APIConnectionError, 
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from app.tools.schema_tool import inspect_schema
 from app.tools.sql_tool import execute_readonly_sql
-from app.agents.verification import verify_root_cause_claim
+from app.agents.verification import verify_revenue_decline_claim
 
 
 load_dotenv()
@@ -163,7 +163,7 @@ def investigate(question: str, max_steps: int = 12):
 
             if tool_name == "submit_final_answer":
                 print(f"Step {step + 1}: agent submitted final answer, verifying...")
-                verification = verify_root_cause_claim(
+                verification = verify_revenue_decline_claim(
                     region=tool_args["root_cause_region"],
                     product=tool_args["root_cause_product"],
                     claimed_q2=tool_args["root_cause_q2_revenue"],
