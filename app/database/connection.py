@@ -1,6 +1,10 @@
 import os
 from dotenv import load_dotenv
 from sqlalchemy import create_engine, text
+from decimal import Decimal
+from datetime import date, datetime
+
+
 
 # Load variables from .env into the environment
 load_dotenv()
@@ -19,20 +23,23 @@ def test_connection():
         return result.scalar()
     
 
+def _make_json_safe(value):
+    """Converts database-specific types into plain JSON-friendly types."""
+    if isinstance(value, Decimal):
+        return float(value)
+    if isinstance(value, (date, datetime)):
+        return value.isoformat()
+    return value
+
+
 def run_query(sql: str, params: dict = None):
-    """
-    Executes a SQL query and returns the results as a list of dictionaries.
-
-    sql: the SQL string to run, with optional named placeholders like :region
-    params: a dictionary of values to safely substitute into those placeholders
-
-    Example:
-        run_query("SELECT * FROM regions WHERE name = :region", {"region": "North"})
-    """
     with engine.connect() as connection:
         result = connection.execute(text(sql), params or {})
         rows = result.mappings().all()
-        return [dict(row) for row in rows]
+        return [
+            {key: _make_json_safe(value) for key, value in row.items()}
+            for row in rows
+        ]
 
 
 if __name__ == "__main__":
