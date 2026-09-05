@@ -184,6 +184,65 @@ SCENARIOS = {
 }
 
 
+GENERAL_SUBMIT_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "submit_answer",
+        "description": "Submit your final answer to the question — a number, name, or short fact.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "answer": {"type": "string", "description": "The final answer, as a plain value (e.g. '60', 'North', '17997.75')."},
+                "explanation": {"type": "string", "description": "One sentence on how you found this."}
+            },
+            "required": ["answer", "explanation"]
+        }
+    }
+}
+
+
+def investigate_general(question: str, max_steps: int = 8):
+    """
+    Runs the agent loop for a general (non-root-cause) benchmark question.
+    Unlike investigate(), this has no bespoke re-verification tool — it just
+    captures the agent's submitted answer. Grading happens externally, by
+    comparing against benchmark/ground_truth.json.
+    """
+    tool_schemas = BASE_TOOL_SCHEMAS + [GENERAL_SUBMIT_TOOL]
+    messages = [
+        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "user", "content": question}
+    ]
+    trace = []
+
+    for step in range(max_steps):
+        response = call_with_retry(
+            client.chat.completions.create,
+            model=MODEL, messages=messages, tools=tool_schemas,
+        )
+        message = response.choices[0].message
+        messages.append(message)
+
+        if not message.tool_calls:
+            messages.append({"role": "user", "content": "Please use the submit_answer tool, not plain text."})
+            continue
+
+        for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments)
+
+            if tool_name == "submit_answer":
+                trace.append({"step": step + 1, "tool": tool_name, "args": tool_args})
+                return tool_args, trace
+
+            tool_fn = AVAILABLE_TOOLS[tool_name]
+            result = tool_fn(**tool_args)
+            trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "result": result})
+            messages.append({"role": "tool", "tool_call_id": tool_call.id, "name": tool_name, "content": json.dumps(result)})
+
+    return {"answer": None, "explanation": "Reached max steps without submitting."}, trace
+
+
 def call_with_retry(fn, *args, max_attempts=4, **kwargs):
     for attempt in range(1, max_attempts + 1):
         try:

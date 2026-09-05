@@ -1,0 +1,182 @@
+[
+  {
+    "id": "simple_01",
+    "category": "simple",
+    "question": "How many customers do we have?",
+    "answer": {
+      "answer": "60",
+      "explanation": "Counted rows in the customers table using SELECT COUNT(*)"
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 2.84,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 60,
+      "submitted": "60"
+    }
+  },
+  {
+    "id": "simple_02",
+    "category": "simple",
+    "question": "How many products do we sell?",
+    "answer": {
+      "answer": "12",
+      "explanation": "Counted rows in the products table, representing the number of distinct products sold."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 15.61,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 12,
+      "submitted": "12"
+    }
+  },
+  {
+    "id": "simple_03",
+    "category": "simple",
+    "question": "How many regions do we operate in?",
+    "answer": {
+      "answer": "4",
+      "explanation": "Counted distinct region_id in orders table, indicating we operate in 4 regions."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 36.04,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 4,
+      "submitted": "4"
+    }
+  },
+  {
+    "id": "simple_04",
+    "category": "simple",
+    "question": "How many orders have been placed in total?",
+    "answer": {
+      "answer": "194",
+      "explanation": "Counted all rows in the orders table, which represents total orders placed."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 32.15,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 194,
+      "submitted": "194"
+    }
+  },
+  {
+    "id": "simple_05",
+    "category": "simple",
+    "question": "How many product categories are there?",
+    "answer": {
+      "answer": "4",
+      "explanation": "Counted distinct rows in product_categories table, which returned 4 categories."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 24.88,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 4,
+      "submitted": "4"
+    }
+  },
+  {
+    "id": "simple_06",
+    "category": "simple",
+    "question": "How many customers are in the North region?",
+    "answer": {
+      "answer": "15",
+      "explanation": "Identified North region ID = 1 and counted customers with that region_id."
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 45.89,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 15,
+      "submitted": "15"
+    }
+  },
+  {
+    "id": "simple_07",
+    "category": "simple",
+    "question": "How many active subscriptions do we have?",
+    "answer": {
+      "answer": "75",
+      "explanation": "Counted rows in the subscriptions table where status = 'active', confirming no future start dates or past end dates among them."
+    },
+    "num_steps": 6,
+    "num_queries": 4,
+    "elapsed_seconds": 87.03,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 75,
+      "submitted": "75"
+    }
+  },
+  {
+    "id": "simple_08",
+    "category": "simple",
+    "question": "How many cancelled subscriptions do we have?",
+    "answer": {
+      "answer": "15",
+      "explanation": "Counted rows in subscriptions where status = 'cancelled' and got 15."
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 44.53,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 15,
+      "submitted": "15"
+    }
+  },
+  {
+    "id": "simple_09",
+    "category": "simple",
+    "question": "What is the price of the Product A - Wireless Earbuds?",
+    "answer": {
+      "answer": "79.99",
+      "explanation": "Queried the products table for the row with name 'Product A - Wireless Earbuds' and retrieved its price."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 34.59,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 79.99,
+      "submitted": "79.99"
+    }
+  },
+  {
+    "id": "simple_10",
+    "category": "simple",
+    "question": "How many marketing campaigns have we run?",
+    "answer": {
+      "answer": "5",
+      "explanation": "Counted rows in marketing_campaigns table via SELECT COUNT(*)"
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 33.92,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 5,
+      "submitted": "5"
+    }
+  }
+]

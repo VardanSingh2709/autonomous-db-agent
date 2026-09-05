@@ -3,6 +3,12 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
 from app.database.connection import run_query
 from sqlalchemy.exc import ProgrammingError
 
+# Minimal, keyword-based safety net. This is NOT a complete defense (Phase 14
+# builds a proper one — a dedicated read-only database role, which blocks
+# writes at the database level regardless of what SQL text looks like). This
+# is just enough to stop obviously destructive statements before that exists.
+FORBIDDEN_KEYWORDS = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "GRANT", "REVOKE"]
+
 
 def execute_readonly_sql(query: str) -> list | dict:
     """
@@ -12,9 +18,12 @@ def execute_readonly_sql(query: str) -> list | dict:
     error, you will receive an error message back — read it carefully,
     fix the specific issue, and try again.
     """
+    upper_query = query.upper()
+    for keyword in FORBIDDEN_KEYWORDS:
+        if keyword in upper_query:
+            return {"error": f"Refused: query contains forbidden keyword '{keyword}'. Only read-only SELECT statements are permitted."}
+
     try:
         return run_query(query)
     except ProgrammingError as e:
-        # Extract just Postgres's own error message, not the full Python traceback,
-        # since that's the useful, actionable part for the model to read.
         return {"error": str(e.orig)}
