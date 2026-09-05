@@ -252,14 +252,16 @@ def investigate(question: str, scenario_key: str, max_steps: int = 15):
     return {"summary": "Investigation stopped: reached maximum steps without a verified answer."}, trace
 
 
+QUESTIONS = {
+    "revenue_decline": "Why did revenue decline in Q3?",
+    "churn_increase": "Why did churn increase in Q3?",
+    "conversion_decline": "Why did conversion decline in Q3?",
+    "purchase_frequency_drop": "Why are customers ordering less frequently in Q3?",
+    "product_mix_effect": "Why did average order value change in Q3, even though no prices changed?",
+}
+
+
 if __name__ == "__main__":
-    QUESTIONS = {
-        "revenue_decline": "Why did revenue decline in Q3?",
-        "churn_increase": "Why did churn increase in Q3?",
-        "conversion_decline": "Why did conversion decline in Q3?",
-        "purchase_frequency_drop": "Why are customers ordering less frequently in Q3?",
-        "product_mix_effect": "Why did average order value change in Q3, even though no prices changed?",
-    }
 
     scenario_key = sys.argv[1] if len(sys.argv) > 1 else "revenue_decline"
     question = QUESTIONS[scenario_key]
