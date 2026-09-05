@@ -1,0 +1,21 @@
+{
+  "scenario_id": "purchase_frequency_drop_q3",
+  "question": "Why are customers ordering less frequently in Q3?",
+  "period_comparison": {
+    "q2_range": ["2024-04-01", "2024-06-30"],
+    "q3_range": ["2024-07-01", "2024-09-30"]
+  },
+  "ground_truth": {
+    "by_customer_type": {
+      "returning": { "q2_avg_orders": 2.25, "q3_avg_orders": 1.40, "pct_change": -37.78 },
+      "new":       { "q2_avg_orders": 1.25, "q3_avg_orders": 1.15, "pct_change": -8.00 }
+    },
+    "root_cause": {
+      "customer_type": "returning",
+      "q2_avg_orders": 2.25,
+      "q3_avg_orders": 1.40,
+      "pct_change": -37.78,
+      "explanation": "Returning customers' average order frequency dropped 37.8% from Q2 to Q3, far steeper than the 8% decline seen among new customers, indicating a specific drop in repeat purchase behavior rather than an overall slowdown."
+    }
+  }
+}

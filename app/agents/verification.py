@@ -123,3 +123,24 @@ def verify_conversion_decline_claim(channel: str, claimed_q2_orders: float, clai
         params={"channel": channel},
         claimed_values={"q2_orders": claimed_q2_orders, "q3_orders": claimed_q3_orders}
     )
+
+
+def verify_purchase_frequency_claim(customer_type: str, claimed_q2_freq: float, claimed_q3_freq: float) -> dict:
+    """Scenario-specific wrapper for the purchase frequency drop investigation.
+    customer_type should be 'returning' or 'new'."""
+    is_returning = (customer_type == "returning")
+    sql = """
+    SELECT
+        SUM(CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN 1 ELSE 0 END)::numeric
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN c.id END), 0) AS q2_avg_orders,
+        SUM(CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN 1 ELSE 0 END)::numeric
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN c.id END), 0) AS q3_avg_orders
+    FROM orders o
+    JOIN customers c ON o.customer_id = c.id
+    WHERE c.is_returning = :is_returning;
+    """
+    return verify_aggregate_claim(
+        sql=sql,
+        params={"is_returning": is_returning},
+        claimed_values={"q2_avg_orders": claimed_q2_freq, "q3_avg_orders": claimed_q3_freq}
+    )
