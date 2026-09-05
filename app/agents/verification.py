@@ -144,3 +144,31 @@ def verify_purchase_frequency_claim(customer_type: str, claimed_q2_freq: float, 
         params={"is_returning": is_returning},
         claimed_values={"q2_avg_orders": claimed_q2_freq, "q3_avg_orders": claimed_q3_freq}
     )
+
+
+def verify_product_mix_claim(claimed_q2_aov: float, claimed_q3_aov: float,
+                               claimed_q2_items_per_order: float, claimed_q3_items_per_order: float) -> dict:
+    """Scenario-specific wrapper for the product mix / AOV investigation."""
+    sql = """
+    SELECT
+        SUM(CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN oi.quantity * oi.unit_price ELSE 0 END)
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN o.id END), 0) AS q2_aov,
+        SUM(CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN oi.quantity * oi.unit_price ELSE 0 END)
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN o.id END), 0) AS q3_aov,
+        SUM(CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN oi.quantity ELSE 0 END)::numeric
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN o.id END), 0) AS q2_items_per_order,
+        SUM(CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN oi.quantity ELSE 0 END)::numeric
+            / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN o.id END), 0) AS q3_items_per_order
+    FROM orders o
+    JOIN order_items oi ON oi.order_id = o.id;
+    """
+    return verify_aggregate_claim(
+        sql=sql,
+        params={},
+        claimed_values={
+            "q2_aov": claimed_q2_aov,
+            "q3_aov": claimed_q3_aov,
+            "q2_items_per_order": claimed_q2_items_per_order,
+            "q3_items_per_order": claimed_q3_items_per_order,
+        }
+    )

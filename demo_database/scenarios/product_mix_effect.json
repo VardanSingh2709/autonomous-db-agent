@@ -1,0 +1,29 @@
+{
+  "scenario_id": "product_mix_effect_q3",
+  "question": "Why did average order value change in Q3, even though no prices changed?",
+  "period_comparison": {
+    "q2_range": ["2024-04-01", "2024-06-30"],
+    "q3_range": ["2024-07-01", "2024-09-30"]
+  },
+  "ground_truth": {
+    "overall": {
+      "q2_revenue": 102306.45,
+      "q3_revenue": 87993.61,
+      "q2_num_orders": 115,
+      "q3_num_orders": 79,
+      "q2_avg_order_value": 889.62,
+      "q3_avg_order_value": 1113.84,
+      "aov_pct_change": 25.21
+    },
+    "basket_composition": {
+      "q2_total_items": 1855,
+      "q3_total_items": 1639,
+      "q2_avg_items_per_order": 16.13,
+      "q3_avg_items_per_order": 20.75,
+      "items_per_order_pct_change": 28.64
+    },
+    "root_cause": {
+      "explanation": "Average order value rose 25.2% in Q3 despite no product price changes anywhere in the catalog. The cause is a shift in order composition: small, single-purpose 'top-up' orders (e.g., discontinued Product A repeat purchases in North, and reduced Skincare Set repeat purchases among returning customers) declined disproportionately, while larger multi-item orders persisted. This pulled the average items per order up from 16.13 to 20.75, mechanically raising average order value even though no customer changed their per-item spending behavior."
+    }
+  }
+}
