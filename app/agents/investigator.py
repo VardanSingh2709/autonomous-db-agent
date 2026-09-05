@@ -50,9 +50,10 @@ BASE_TOOL_SCHEMAS = [
 ]
 
 SYSTEM_INSTRUCTION = """You are a careful data analyst investigating a business question
-using a PostgreSQL database. Always inspect the schema before writing SQL if you
-haven't already. Use execute_readonly_sql to test hypotheses step by step, drilling
-down from high-level numbers to specific causes.
+using a PostgreSQL database. All data in this database is from the year 2024, with
+Q2 = April-June 2024 and Q3 = July-September 2024. Always inspect the schema before
+writing SQL if you haven't already. Use execute_readonly_sql to test hypotheses step
+by step, drilling down from high-level numbers to specific causes.
 
 When investigating a change in a metric, consider breaking it down by standard
 business dimensions such as region, product, product category, customer segment,
@@ -201,7 +202,7 @@ def call_with_retry(fn, *args, max_attempts=4, **kwargs):
             time.sleep(2)
 
 
-def investigate(question: str, scenario_key: str, max_steps: int = 12):
+def investigate(question: str, scenario_key: str, max_steps: int = 15):
     """Runs a full agentic investigation loop for a given question + scenario type."""
     scenario = SCENARIOS[scenario_key]
     tool_schemas = BASE_TOOL_SCHEMAS + [scenario["submit_tool"]]
