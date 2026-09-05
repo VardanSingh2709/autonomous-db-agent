@@ -90,12 +90,12 @@ BENCHMARK_QUESTIONS = [
     {"id": "time_02", "category": "time_comparison", "question": "How many active Premium subscriptions were there at the start of Q2 vs the start of Q3 2024?",
      "ground_truth_type": "sql", "ground_truth_query":
         "SELECT SUM(CASE WHEN start_date < '2024-04-01' AND (end_date IS NULL OR end_date >= '2024-04-01') THEN 1 ELSE 0 END) AS q2, SUM(CASE WHEN start_date < '2024-07-01' AND (end_date IS NULL OR end_date >= '2024-07-01') THEN 1 ELSE 0 END) AS answer FROM subscriptions WHERE tier = 'Premium';"},
-    {"id": "time_03", "category": "time_comparison", "question": "Compare total revenue in April 2024 vs July 2024.",
+    {"id": "time_03", "category": "time_comparison", "question": "Compare total revenue on 2024-05-01 vs 2024-08-01.",
      "ground_truth_type": "sql", "ground_truth_query":
-        "SELECT SUM(CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-05-01' THEN oi.quantity*oi.unit_price ELSE 0 END) AS april, SUM(CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-08-01' THEN oi.quantity*oi.unit_price ELSE 0 END) AS answer FROM orders o JOIN order_items oi ON oi.order_id=o.id;"},
-    {"id": "time_04", "category": "time_comparison", "question": "How many new subscriptions started in Q2 2024 vs Q3 2024?",
+        "SELECT SUM(CASE WHEN o.order_date = '2024-05-01' THEN oi.quantity*oi.unit_price ELSE 0 END) AS may_1, SUM(CASE WHEN o.order_date = '2024-08-01' THEN oi.quantity*oi.unit_price ELSE 0 END) AS answer FROM orders o JOIN order_items oi ON oi.order_id=o.id;"},
+    {"id": "time_04", "category": "time_comparison", "question": "How many subscriptions were cancelled in Q2 2024 vs Q3 2024?",
      "ground_truth_type": "sql", "ground_truth_query":
-        "SELECT SUM(CASE WHEN start_date >= '2024-04-01' AND start_date < '2024-07-01' THEN 1 ELSE 0 END) AS q2, SUM(CASE WHEN start_date >= '2024-07-01' AND start_date < '2024-10-01' THEN 1 ELSE 0 END) AS answer FROM subscriptions;"},
+        "SELECT SUM(CASE WHEN end_date >= '2024-04-01' AND end_date < '2024-07-01' AND status='cancelled' THEN 1 ELSE 0 END) AS q2, SUM(CASE WHEN end_date >= '2024-07-01' AND end_date < '2024-10-01' AND status='cancelled' THEN 1 ELSE 0 END) AS answer FROM subscriptions;"},
     {"id": "time_05", "category": "time_comparison", "question": "Compare average order value in Q2 2024 vs Q3 2024.",
      "ground_truth_type": "sql", "ground_truth_query":
         "SELECT SUM(CASE WHEN o.order_date < '2024-07-01' THEN oi.quantity*oi.unit_price ELSE 0 END) / NULLIF(SUM(CASE WHEN o.order_date < '2024-07-01' THEN 1 ELSE 0 END),0) AS q2, SUM(CASE WHEN o.order_date >= '2024-07-01' THEN oi.quantity*oi.unit_price ELSE 0 END) / NULLIF(COUNT(DISTINCT CASE WHEN o.order_date >= '2024-07-01' THEN o.id END),0) AS answer FROM orders o JOIN order_items oi ON oi.order_id=o.id WHERE o.order_date >= '2024-04-01' AND o.order_date < '2024-10-01';"},

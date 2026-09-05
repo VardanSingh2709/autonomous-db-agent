@@ -232,8 +232,8 @@
     "status": "ok",
     "result": [
       {
-        "april": 0.0,
-        "answer": 0.0
+        "may_1": 41618.1,
+        "answer": 30119.65
       }
     ]
   },
@@ -241,8 +241,8 @@
     "status": "ok",
     "result": [
       {
-        "q2": 0,
-        "answer": 0
+        "q2": 5,
+        "answer": 10
       }
     ]
   },
