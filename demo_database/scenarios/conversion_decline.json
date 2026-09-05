@@ -1,0 +1,23 @@
+{
+  "scenario_id": "conversion_decline_q3",
+  "question": "Why did conversion decline in Q3?",
+  "period_comparison": {
+    "q2_range": ["2024-04-01", "2024-06-30"],
+    "q3_range": ["2024-07-01", "2024-09-30"]
+  },
+  "ground_truth": {
+    "by_channel": {
+      "paid_search":    { "q2_orders": 30, "q3_orders": 8,  "pct_change": -73.33 },
+      "email":          { "q2_orders": 20, "q3_orders": 18, "pct_change": -10.00 },
+      "social_media":   { "q2_orders": 15, "q3_orders": 14, "pct_change": -6.67 },
+      "organic_direct": { "q2_orders": 10, "q3_orders": 30, "pct_change": 200.00 }
+    },
+    "root_cause": {
+      "channel": "paid_search",
+      "q2_orders": 30,
+      "q3_orders": 8,
+      "pct_change": -73.33,
+      "explanation": "Order volume attributed to paid search collapsed 73.3% between Q2 and Q3, while email and social media channels declined only mildly (-10% and -6.7%). Organic/direct orders grew substantially, partly offsetting the paid search drop in total order count."
+    }
+  }
+}

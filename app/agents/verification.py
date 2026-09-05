@@ -106,3 +106,20 @@ def verify_churn_claim(tier: str, claimed_q2_rate: float, claimed_q3_rate: float
         params={"tier": tier},
         claimed_values={"q2_churn_pct": claimed_q2_rate, "q3_churn_pct": claimed_q3_rate}
     )
+
+
+def verify_conversion_decline_claim(channel: str, claimed_q2_orders: float, claimed_q3_orders: float) -> dict:
+    """Scenario-specific wrapper for the conversion decline investigation."""
+    sql = """
+    SELECT
+        SUM(CASE WHEN o.order_date >= '2024-04-01' AND o.order_date < '2024-07-01' THEN 1 ELSE 0 END) AS q2_orders,
+        SUM(CASE WHEN o.order_date >= '2024-07-01' AND o.order_date < '2024-10-01' THEN 1 ELSE 0 END) AS q3_orders
+    FROM orders o
+    JOIN marketing_campaigns mc ON o.campaign_id = mc.id
+    WHERE mc.channel = :channel;
+    """
+    return verify_aggregate_claim(
+        sql=sql,
+        params={"channel": channel},
+        claimed_values={"q2_orders": claimed_q2_orders, "q3_orders": claimed_q3_orders}
+    )
