@@ -5,37 +5,34 @@ import json
 from dotenv import load_dotenv
 from groq import Groq, RateLimitError, InternalServerError, APIConnectionError, BadRequestError
 
-
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
+
 from app.tools.schema_tool import inspect_schema
 from app.tools.sql_tool import execute_readonly_sql
-from app.agents.verification import verify_revenue_decline_claim
-
+from app.agents.verification import (
+    verify_revenue_decline_claim,
+    verify_churn_claim,
+    verify_conversion_decline_claim,
+    verify_purchase_frequency_claim,
+    verify_product_mix_claim,
+)
 
 load_dotenv()
 client = Groq(api_key=os.getenv("GROQ_API_KEY"))
-
 MODEL = "openai/gpt-oss-120b"
 
-# Map tool names to the real Python functions that implement them.
 AVAILABLE_TOOLS = {
     "inspect_schema": inspect_schema,
     "execute_readonly_sql": execute_readonly_sql,
 }
 
-# Groq (like most non-Gemini APIs) needs an explicit JSON schema per tool,
-# rather than inferring one from a Python function automatically.
-TOOL_SCHEMAS = [
+BASE_TOOL_SCHEMAS = [
     {
         "type": "function",
         "function": {
             "name": "inspect_schema",
             "description": "Returns the list of tables and columns in the database. Call this first, before writing any SQL.",
-            "parameters": {
-                "type": "object",
-                "properties": {},
-                "required": []
-            }
+            "parameters": {"type": "object", "properties": {}, "required": []}
         }
     },
     {
@@ -45,55 +42,11 @@ TOOL_SCHEMAS = [
             "description": "Executes a read-only SELECT query and returns the results. Never use INSERT, UPDATE, DELETE, DROP, or any statement that modifies data.",
             "parameters": {
                 "type": "object",
-                "properties": {
-                    "query": {
-                        "type": "string",
-                        "description": "A single PostgreSQL SELECT statement."
-                    }
-                },
+                "properties": {"query": {"type": "string", "description": "A single PostgreSQL SELECT statement."}},
                 "required": ["query"]
             }
         }
-    },
-    {
-    "type": "function",
-    "function": {
-        "name": "submit_final_answer",
-        "description": "Submit your final, verified conclusion once you have enough evidence. Only call this when you are confident and have checked the specific combination of region and product responsible for the change, not just each dimension separately.",
-        "parameters": {
-            "type": "object",
-            "properties": {
-                "summary": {
-                    "type": "string",
-                    "description": "A plain-English explanation of the finding, 2-4 sentences."
-                },
-                "overall_q2_revenue": {"type": "number"},
-                "overall_q3_revenue": {"type": "number"},
-                "root_cause_region": {
-                    "type": "string",
-                    "description": "The single region most responsible for the decline."
-                },
-                "root_cause_product": {
-                    "type": "string",
-                    "description": "The single product most responsible for the decline, within that region."
-                },
-                "root_cause_q2_revenue": {
-                    "type": "number",
-                    "description": "Revenue for this specific product, in this specific region, in Q2."
-                },
-                "root_cause_q3_revenue": {
-                    "type": "number",
-                    "description": "Revenue for this specific product, in this specific region, in Q3."
-                }
-            },
-            "required": [
-                "summary", "overall_q2_revenue", "overall_q3_revenue",
-                "root_cause_region", "root_cause_product",
-                "root_cause_q2_revenue", "root_cause_q3_revenue"
-            ]
-        }
     }
-},
 ]
 
 SYSTEM_INSTRUCTION = """You are a careful data analyst investigating a business question
@@ -101,18 +54,136 @@ using a PostgreSQL database. Always inspect the schema before writing SQL if you
 haven't already. Use execute_readonly_sql to test hypotheses step by step, drilling
 down from high-level numbers to specific causes.
 
-When investigating a change in a metric like revenue, consider breaking it down by
-standard business dimensions such as region, product, product category, and customer
-segment, not just by time period, since the root cause is often concentrated in one
-specific slice rather than spread evenly.
+When investigating a change in a metric, consider breaking it down by standard
+business dimensions such as region, product, product category, customer segment,
+or marketing channel, since the root cause is often concentrated in one specific
+slice rather than spread evenly. When a metric is a rate or ratio (like churn rate
+or average order value), be careful to compute the correct numerator and denominator.
 
-Once you have enough evidence to confidently answer the question, respond with a
-final plain-text answer and do not call any more tools."""
+Once you have enough evidence, submit your answer using the provided submit tool.
+Do not answer in plain text."""
+
+
+# --- Scenario configuration: one entry per question type we can investigate ---
+SCENARIOS = {
+    "revenue_decline": {
+        "submit_tool": {
+            "type": "function",
+            "function": {
+                "name": "submit_final_answer",
+                "description": "Submit your final conclusion. Must identify the specific region AND product combination responsible.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "root_cause_region": {"type": "string"},
+                        "root_cause_product": {"type": "string"},
+                        "root_cause_q2_revenue": {"type": "number"},
+                        "root_cause_q3_revenue": {"type": "number"},
+                    },
+                    "required": ["summary", "root_cause_region", "root_cause_product", "root_cause_q2_revenue", "root_cause_q3_revenue"]
+                }
+            }
+        },
+        "verify": lambda args: verify_revenue_decline_claim(
+            args["root_cause_region"], args["root_cause_product"],
+            args["root_cause_q2_revenue"], args["root_cause_q3_revenue"]
+        )
+    },
+    "churn_increase": {
+        "submit_tool": {
+            "type": "function",
+            "function": {
+                "name": "submit_final_answer",
+                "description": "Submit your final conclusion. Must identify the specific subscription tier responsible.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "root_cause_tier": {"type": "string"},
+                        "root_cause_q2_churn_pct": {"type": "number"},
+                        "root_cause_q3_churn_pct": {"type": "number"},
+                    },
+                    "required": ["summary", "root_cause_tier", "root_cause_q2_churn_pct", "root_cause_q3_churn_pct"]
+                }
+            }
+        },
+        "verify": lambda args: verify_churn_claim(
+            args["root_cause_tier"], args["root_cause_q2_churn_pct"], args["root_cause_q3_churn_pct"]
+        )
+    },
+    "conversion_decline": {
+        "submit_tool": {
+            "type": "function",
+            "function": {
+                "name": "submit_final_answer",
+                "description": "Submit your final conclusion. Must identify the specific marketing channel responsible.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "root_cause_channel": {"type": "string"},
+                        "root_cause_q2_orders": {"type": "number"},
+                        "root_cause_q3_orders": {"type": "number"},
+                    },
+                    "required": ["summary", "root_cause_channel", "root_cause_q2_orders", "root_cause_q3_orders"]
+                }
+            }
+        },
+        "verify": lambda args: verify_conversion_decline_claim(
+            args["root_cause_channel"], args["root_cause_q2_orders"], args["root_cause_q3_orders"]
+        )
+    },
+    "purchase_frequency_drop": {
+        "submit_tool": {
+            "type": "function",
+            "function": {
+                "name": "submit_final_answer",
+                "description": "Submit your final conclusion. Must identify whether returning or new customers are responsible.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "root_cause_customer_type": {"type": "string", "description": "'returning' or 'new'"},
+                        "root_cause_q2_avg_orders": {"type": "number"},
+                        "root_cause_q3_avg_orders": {"type": "number"},
+                    },
+                    "required": ["summary", "root_cause_customer_type", "root_cause_q2_avg_orders", "root_cause_q3_avg_orders"]
+                }
+            }
+        },
+        "verify": lambda args: verify_purchase_frequency_claim(
+            args["root_cause_customer_type"], args["root_cause_q2_avg_orders"], args["root_cause_q3_avg_orders"]
+        )
+    },
+    "product_mix_effect": {
+        "submit_tool": {
+            "type": "function",
+            "function": {
+                "name": "submit_final_answer",
+                "description": "Submit your final conclusion about the average order value change.",
+                "parameters": {
+                    "type": "object",
+                    "properties": {
+                        "summary": {"type": "string"},
+                        "q2_avg_order_value": {"type": "number"},
+                        "q3_avg_order_value": {"type": "number"},
+                        "q2_avg_items_per_order": {"type": "number"},
+                        "q3_avg_items_per_order": {"type": "number"},
+                    },
+                    "required": ["summary", "q2_avg_order_value", "q3_avg_order_value", "q2_avg_items_per_order", "q3_avg_items_per_order"]
+                }
+            }
+        },
+        "verify": lambda args: verify_product_mix_claim(
+            args["q2_avg_order_value"], args["q3_avg_order_value"],
+            args["q2_avg_items_per_order"], args["q3_avg_items_per_order"]
+        )
+    },
+}
 
 
 def call_with_retry(fn, *args, max_attempts=4, **kwargs):
-    """Retries on rate limits, transient server/connection errors, and malformed
-    tool-call generations (a known gpt-oss quirk on Groq)."""
     for attempt in range(1, max_attempts + 1):
         try:
             return fn(*args, **kwargs)
@@ -126,11 +197,15 @@ def call_with_retry(fn, *args, max_attempts=4, **kwargs):
             is_malformed_tool_call = "tool_use_failed" in str(e)
             if not is_malformed_tool_call or attempt == max_attempts:
                 raise
-            print(f"Model produced a malformed tool call (known gpt-oss quirk), attempt {attempt}/{max_attempts}. Retrying...")
+            print(f"Model produced a malformed tool call, attempt {attempt}/{max_attempts}. Retrying...")
             time.sleep(2)
 
 
-def investigate(question: str, max_steps: int = 12):
+def investigate(question: str, scenario_key: str, max_steps: int = 12):
+    """Runs a full agentic investigation loop for a given question + scenario type."""
+    scenario = SCENARIOS[scenario_key]
+    tool_schemas = BASE_TOOL_SCHEMAS + [scenario["submit_tool"]]
+
     messages = [
         {"role": "system", "content": SYSTEM_INSTRUCTION},
         {"role": "user", "content": question}
@@ -140,21 +215,13 @@ def investigate(question: str, max_steps: int = 12):
     for step in range(max_steps):
         response = call_with_retry(
             client.chat.completions.create,
-            model=MODEL,
-            messages=messages,
-            tools=TOOL_SCHEMAS,
+            model=MODEL, messages=messages, tools=tool_schemas,
         )
-
         message = response.choices[0].message
         messages.append(message)
 
         if not message.tool_calls:
-            # The model produced plain text instead of using submit_final_answer.
-            # We don't accept this as a verified final answer.
-            messages.append({
-                "role": "user",
-                "content": "Please use the submit_final_answer tool to provide your conclusion, rather than plain text."
-            })
+            messages.append({"role": "user", "content": "Please use the submit_final_answer tool, not plain text."})
             continue
 
         for tool_call in message.tool_calls:
@@ -163,51 +230,41 @@ def investigate(question: str, max_steps: int = 12):
 
             if tool_name == "submit_final_answer":
                 print(f"Step {step + 1}: agent submitted final answer, verifying...")
-                verification = verify_revenue_decline_claim(
-                    region=tool_args["root_cause_region"],
-                    product=tool_args["root_cause_product"],
-                    claimed_q2=tool_args["root_cause_q2_revenue"],
-                    claimed_q3=tool_args["root_cause_q3_revenue"],
-                )
-                trace.append({
-                    "step": step + 1,
-                    "tool": "submit_final_answer",
-                    "args": tool_args,
-                    "verification": verification,
-                })
+                verification = scenario["verify"](tool_args)
+                trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "verification": verification})
 
                 if verification["verified"]:
-                    return tool_args, trace  # SUCCESS: verified final answer
+                    return tool_args, trace
 
-                # Verification failed: tell the agent why, let it try again.
                 messages.append({
-                    "role": "tool",
-                    "tool_call_id": tool_call.id,
-                    "name": tool_name,
-                    "content": json.dumps({
-                        "verified": False,
-                        "message": verification["reason"] + " Please investigate further and resubmit."
-                    }),
+                    "role": "tool", "tool_call_id": tool_call.id, "name": tool_name,
+                    "content": json.dumps({"verified": False, "message": verification["reason"] + " Please investigate further and resubmit."})
                 })
                 continue
 
-            # Handle inspect_schema / execute_readonly_sql as before
             tool_fn = AVAILABLE_TOOLS[tool_name]
             print(f"Step {step + 1}: calling {tool_name}({tool_args})")
             result = tool_fn(**tool_args)
             trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "result": result})
-            messages.append({
-                "role": "tool",
-                "tool_call_id": tool_call.id,
-                "name": tool_name,
-                "content": json.dumps(result),
-            })
+            messages.append({"role": "tool", "tool_call_id": tool_call.id, "name": tool_name, "content": json.dumps(result)})
 
     return {"summary": "Investigation stopped: reached maximum steps without a verified answer."}, trace
 
 
 if __name__ == "__main__":
-    answer, trace = investigate("Why did revenue decline in Q3?")
+    QUESTIONS = {
+        "revenue_decline": "Why did revenue decline in Q3?",
+        "churn_increase": "Why did churn increase in Q3?",
+        "conversion_decline": "Why did conversion decline in Q3?",
+        "purchase_frequency_drop": "Why are customers ordering less frequently in Q3?",
+        "product_mix_effect": "Why did average order value change in Q3, even though no prices changed?",
+    }
+
+    scenario_key = sys.argv[1] if len(sys.argv) > 1 else "revenue_decline"
+    question = QUESTIONS[scenario_key]
+
+    print(f"=== Investigating: {question} ===\n")
+    answer, trace = investigate(question, scenario_key)
 
     print("\n=== FINAL ANSWER ===")
     print(json.dumps(answer, indent=2))
