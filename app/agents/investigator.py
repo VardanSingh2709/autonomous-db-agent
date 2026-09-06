@@ -247,7 +247,16 @@ def call_with_retry(fn, *args, max_attempts=4, **kwargs):
     for attempt in range(1, max_attempts + 1):
         try:
             return fn(*args, **kwargs)
-        except (RateLimitError, InternalServerError, APIConnectionError) as e:
+        except RateLimitError as e:
+            if "tokens per day" in str(e) or "TPD" in str(e):
+                # Daily quota exhausted — no amount of short retrying will help today.
+                raise RuntimeError(f"Daily token quota exhausted. Stop and resume tomorrow. Original error: {e}") from e
+            if attempt == max_attempts:
+                raise
+            wait_seconds = attempt * 5
+            print(f"Groq temporarily unavailable (per-minute rate limit), attempt {attempt}/{max_attempts}. Retrying in {wait_seconds}s...")
+            time.sleep(wait_seconds)
+        except (InternalServerError, APIConnectionError) as e:
             if attempt == max_attempts:
                 raise
             wait_seconds = attempt * 5
