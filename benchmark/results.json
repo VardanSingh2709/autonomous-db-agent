@@ -406,5 +406,97 @@
       "submitted_q2": 30,
       "submitted_q3": 28
     }
+  },
+  {
+    "id": "rootcause_revenue",
+    "category": "root_cause",
+    "question": "Why did revenue decline in Q3?",
+    "answer": {
+      "root_cause_product": "Product A - Wireless Earbuds",
+      "root_cause_q2_revenue": 17997.75,
+      "root_cause_q3_revenue": 7999,
+      "root_cause_region": "North",
+      "summary": "Revenue fell in Q3 mainly because sales of Product A - Wireless Earbuds in the North region dropped sharply from $17,997.75 in Q2 to $7,999.00 in Q3, a decline of $9,998.75. This single product\u2011region pair accounts for about 70% of the total Q3 revenue decline of $14,313, making it the primary driver of the overall revenue reduction."
+    },
+    "num_steps": 8,
+    "num_queries": 6,
+    "elapsed_seconds": 71.55,
+    "grading": {
+      "gradable": true,
+      "correct": true
+    }
+  },
+  {
+    "id": "rootcause_churn",
+    "category": "root_cause",
+    "question": "Why did churn increase in Q3?",
+    "answer": {
+      "root_cause_q2_churn_pct": 6.67,
+      "root_cause_q3_churn_pct": 25,
+      "root_cause_tier": "Premium",
+      "summary": "Overall churn rose from 5.6% in Q2 to 11.8% in Q3. Breaking it down by subscription tier shows the Premium tier\u2019s churn jumped from 6.7% (2 of 30 active) in Q2 to 25.0% (7 of 28 active) in Q3, while Basic and Enterprise tiers remained stable. The sharp increase in Premium\u2011tier cancellations is the primary driver of the Q3 churn rise."
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 72.69,
+    "grading": {
+      "gradable": true,
+      "correct": true
+    }
+  },
+  {
+    "id": "rootcause_conversion",
+    "category": "root_cause",
+    "question": "Why did conversion decline in Q3?",
+    "answer": {
+      "root_cause_channel": "paid_search",
+      "root_cause_q2_orders": 30,
+      "root_cause_q3_orders": 8,
+      "summary": "Overall order volume fell from 115 in Q2 to 79 in Q3, a drop of 36 orders. When breaking down orders by marketing channel, the paid_search channel saw the steepest decline, falling from 30 orders in Q2 to only 8 in Q3 (a loss of 22 orders). Email and social_media channels remained relatively stable, and orders without an attributed campaign also only declined modestly. The sharp reduction in paid_search performance is the primary driver of the Q3 conversion decline."
+    },
+    "num_steps": 6,
+    "num_queries": 4,
+    "elapsed_seconds": 79.95,
+    "grading": {
+      "gradable": true,
+      "correct": true
+    }
+  },
+  {
+    "id": "rootcause_frequency",
+    "category": "root_cause",
+    "question": "Why are customers ordering less frequently in Q3?",
+    "answer": {
+      "root_cause_customer_type": "returning",
+      "root_cause_q2_avg_orders": 2.25,
+      "root_cause_q3_avg_orders": 1.4,
+      "summary": "Average orders per returning customer fell sharply from 2.25 in Q2 to 1.4 in Q3, a drop of ~38%, whereas new customers only saw a modest decline (1.25 to 1.15). Overall average orders dropped from 1.92 to 1.32. The larger reduction among returning customers drives the Q3 decrease in ordering frequency."
+    },
+    "num_steps": 10,
+    "num_queries": 8,
+    "elapsed_seconds": 153.42,
+    "grading": {
+      "gradable": true,
+      "correct": true
+    }
+  },
+  {
+    "id": "rootcause_mix",
+    "category": "root_cause",
+    "question": "Why did average order value change in Q3, even though no prices changed?",
+    "answer": {
+      "q2_avg_items_per_order": 16.130434782608695,
+      "q2_avg_order_value": 889.6213043478261,
+      "q3_avg_items_per_order": 20.746835443037973,
+      "q3_avg_order_value": 1113.843164556962,
+      "summary": "Average order value rose from ~\u00a5890 in Q2 to ~\u00a51,114 in Q3 even though product prices stayed flat. The rise is driven by larger orders: the average items per order grew from 16.1 to 20.7, and the median order size doubled. Sales volume fell (\u224814% drop) while the number of orders fell even more (\u224831% drop), so the remaining orders were disproportionately big. The increase is most pronounced in the South, East, and West regions and among returning customers, whose average order value jumped from ~\u00a5764 to ~\u00a51,055. Marketing campaigns such as the Influencer Collab also contributed higher\u2011value orders, but the overarching pattern is a shift toward fewer, higher\u2011quantity purchases rather than any price change."
+    },
+    "num_steps": 9,
+    "num_queries": 7,
+    "elapsed_seconds": 237.56,
+    "grading": {
+      "gradable": true,
+      "correct": true
+    }
   }
 ]
