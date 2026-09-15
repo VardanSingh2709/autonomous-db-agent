@@ -57,50 +57,354 @@
     "id": "agg_04",
     "category": "aggregation",
     "question": "What is the average price of products in the Electronics category?",
-    "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01km14n48mfh0b3zwdrjcy11d9` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199851, Requested 1700. Please try again in 11m10.031999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+    "answer": {
+      "answer": "53.32",
+      "explanation": "Joined products with product_categories filtered on the Electronics category and calculated the average of the product price column."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 3.11,
     "grading": {
-      "gradable": false,
-      "reason": "crashed"
+      "gradable": true,
+      "correct": true,
+      "true_value": 53.32333333333333,
+      "submitted": "53.32"
     }
   },
   {
     "id": "agg_05",
     "category": "aggregation",
     "question": "What is the total quantity of items sold?",
-    "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01km14n48mfh0b3zwdrjcy11d9` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199781, Requested 577. Please try again in 2m34.656s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+    "answer": {
+      "answer": "3494",
+      "explanation": "I summed the quantity field across all rows in the order_items table, which represents the total number of items sold."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 15.97,
     "grading": {
-      "gradable": false,
-      "reason": "crashed"
+      "gradable": true,
+      "correct": true,
+      "true_value": 3494,
+      "submitted": "3494"
     }
   },
   {
     "id": "agg_06",
     "category": "aggregation",
     "question": "What is the average subscription duration, in days, for cancelled subscriptions?",
-    "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01km14n48mfh0b3zwdrjcy11d9` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199710, Requested 582. Please try again in 2m6.143999999s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+    "answer": {
+      "answer": "414.67",
+      "explanation": "Calculated the average of (end_date - start_date) in days for rows in the subscriptions table where status = 'cancelled' and end_date is present, yielding approximately 414.67 days."
+    },
+    "num_steps": 5,
+    "num_queries": 3,
+    "elapsed_seconds": 64.97,
     "grading": {
-      "gradable": false,
-      "reason": "crashed"
+      "gradable": true,
+      "correct": true,
+      "true_value": 414.6666666666667,
+      "submitted": "414.67"
     }
   },
   {
     "id": "agg_07",
     "category": "aggregation",
     "question": "What is the highest-priced product we sell, and what does it cost?",
-    "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01km14n48mfh0b3zwdrjcy11d9` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199639, Requested 583. Please try again in 1m35.904s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+    "answer": {
+      "answer": "Ceramic Cookware Set, $89.99",
+      "explanation": "Queried the products table ordering by price descending and took the top row, which returned Ceramic Cookware Set priced at 89.99."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 28.11,
     "grading": {
-      "gradable": false,
-      "reason": "crashed"
+      "gradable": true,
+      "correct": true,
+      "true_value": 89.99,
+      "submitted": "Ceramic Cookware Set, $89.99"
     }
   },
   {
     "id": "agg_08",
     "category": "aggregation",
     "question": "What is the total revenue generated through the paid_search marketing channel?",
-    "error": "Error code: 429 - {'error': {'message': 'Rate limit reached for model `openai/gpt-oss-120b` in organization `org_01km14n48mfh0b3zwdrjcy11d9` service tier `on_demand` on tokens per day (TPD): Limit 200000, Used 199582, Requested 1911. Please try again in 10m44.976s. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing', 'type': 'tokens', 'code': 'rate_limit_exceeded'}}",
+    "answer": {
+      "answer": "36245.0",
+      "explanation": "Joined orders to marketing_campaigns filtering channel='paid_search', then summed quantity\u202f\u00d7\u202funit_price from order_items to get total revenue."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 23.76,
     "grading": {
-      "gradable": false,
-      "reason": "crashed"
+      "gradable": true,
+      "correct": true,
+      "true_value": 36245.0,
+      "submitted": "36245.0"
+    }
+  },
+  {
+    "id": "join_01",
+    "category": "joins",
+    "question": "Which product category generates the most total revenue?",
+    "answer": {
+      "answer": "Apparel",
+      "explanation": "Aggregated revenue (quantity\u202f\u00d7\u202funit_price) from order_items for 2024, joined to products and product_categories, showed Apparel had the highest sum."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 30.28,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": "Apparel",
+      "submitted": "Apparel"
+    }
+  },
+  {
+    "id": "join_02",
+    "category": "joins",
+    "question": "How many orders were placed by customers in the East region?",
+    "answer": {
+      "answer": "43",
+      "explanation": "Found East region id (3) then counted orders joined to customers with that region, resulting in 43 orders."
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 36.91,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 43,
+      "submitted": "43"
+    }
+  },
+  {
+    "id": "join_03",
+    "category": "joins",
+    "question": "What is the total revenue generated by the 'Search Ads Q3' campaign?",
+    "answer": {
+      "answer": "6399.2",
+      "explanation": "Summed quantity * unit_price for all order items of orders linked to the 'Search Ads Q3' campaign."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 35.67,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 6399.2,
+      "submitted": "6399.2"
+    }
+  },
+  {
+    "id": "join_04",
+    "category": "joins",
+    "question": "How many distinct customers have an active Enterprise subscription?",
+    "answer": {
+      "answer": "28",
+      "explanation": "Counted distinct customer_id in subscriptions where tier='Enterprise' and status='active'."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 39.25,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 28,
+      "submitted": "28"
+    }
+  },
+  {
+    "id": "join_05",
+    "category": "joins",
+    "question": "What is the total revenue from products in the 'Home & Kitchen' category?",
+    "answer": {
+      "answer": "32842.5",
+      "explanation": "Summed quantity * unit_price from order_items for products whose category is 'Home & Kitchen' via joins."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 45.02,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 32842.5,
+      "submitted": "32842.5"
+    }
+  },
+  {
+    "id": "join_06",
+    "category": "joins",
+    "question": "How many distinct orders included at least one Electronics product?",
+    "answer": {
+      "answer": "145",
+      "explanation": "Counted distinct order_id in order_items linked to products in the Electronics category."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 27.88,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 145,
+      "submitted": "145"
+    }
+  },
+  {
+    "id": "join_07",
+    "category": "joins",
+    "question": "What is the average order value for orders from returning customers?",
+    "answer": {
+      "answer": "875.25",
+      "explanation": "Joined orders to customers (filtering is_returning = true) and summed quantity\u202f\u00d7\u202funit_price from order_items per order, then divided total revenue by the number of distinct orders to get the average order value for returning customers."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 33.8,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 875.2500684931507,
+      "submitted": "875.25"
+    }
+  },
+  {
+    "id": "join_08",
+    "category": "joins",
+    "question": "Which region has the highest number of active subscriptions among its customers?",
+    "answer": {
+      "answer": "South",
+      "explanation": "Joined subscriptions (status='active') to customers and regions, counted active subscriptions per region, and found South has the highest count (45)."
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 47.83,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": "South",
+      "submitted": "South"
+    }
+  },
+  {
+    "id": "time_01",
+    "category": "time_comparison",
+    "question": "How did total order count change from Q2 to Q3 2024?",
+    "answer": {
+      "answer": "-36",
+      "explanation": "Counted rows in the orders table for Q2 (April\u2011June 2024) and Q3 (July\u2011September 2024); orders fell from 115 in Q2 to 79 in Q3, a change of -36 orders."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 4.63,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "true_value": 79,
+      "submitted": "-36"
+    }
+  },
+  {
+    "id": "time_03",
+    "category": "time_comparison",
+    "question": "Compare total revenue on 2024-05-01 vs 2024-08-01.",
+    "answer": {
+      "answer": "May\u202f1\u202f2024 revenue: $41,618.10; August\u202f1\u202f2024 revenue: $30,119.65 (May is $11,498.45 higher).",
+      "explanation": "Summed quantity\u202f\u00d7\u202funit_price from order_items for orders dated 2024-05-01 and 2024-08-01."
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 28.74,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "true_value": 30119.65,
+      "submitted": "May\u202f1\u202f2024 revenue: $41,618.10; August\u202f1\u202f2024 revenue: $30,119.65 (May is $11,498.45 higher)."
+    }
+  },
+  {
+    "id": "time_04",
+    "category": "time_comparison",
+    "question": "How many subscriptions were cancelled in Q2 2024 vs Q3 2024?",
+    "answer": {
+      "explanation": "Counted subscriptions with status = 'cancelled' where the cancellation date (end_date) falls within each quarter. Q2 covers 2024-04-01 to 2024-06-30; Q3 covers 2024-07-01 to 2024-09-30.",
+      "q2_value": 5,
+      "q3_value": 10
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 24.78,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_q2": 5,
+      "true_q3": 10,
+      "submitted_q2": 5,
+      "submitted_q3": 10
+    }
+  },
+  {
+    "id": "time_06",
+    "category": "time_comparison",
+    "question": "How many orders were placed in North region in Q2 2024 vs Q3 2024?",
+    "answer": {
+      "explanation": "Counted orders in the North region by joining orders to regions and filtering order_date to Q2 (2024-04-01 to 2024-06-30) and Q3 (2024-07-01 to 2024-09-30). The resulting counts are 40 orders in Q2 and 26 orders in Q3.",
+      "q2_value": 40,
+      "q3_value": 26
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 53.24,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_q2": 40,
+      "true_q3": 26,
+      "submitted_q2": 40,
+      "submitted_q3": 26
+    }
+  },
+  {
+    "id": "time_05",
+    "category": "time_comparison",
+    "question": "Compare average order value in Q2 2024 vs Q3 2024.",
+    "answer": {
+      "explanation": "Average order value (AOV) is calculated as the total revenue from order items (quantity\u202f\u00d7\u202funit_price) divided by the number of distinct orders. Using orders placed from 2024\u201104\u201101 to 2024\u201106\u201130 (Q2) and from 2024\u201107\u201101 to 2024\u201109\u201130 (Q3) we find:\n- Q2: 115 orders with total item value $102,306.45 \u2192 AOV \u2248 $889.62 per order.\n- Q3: 79 orders with total item value $87,993.61 \u2192 AOV \u2248 $1,113.84 per order.\nThus the average order value rose substantially in Q3 compared with Q2.",
+      "q2_value": 889.62,
+      "q3_value": 1113.84
+    },
+    "num_steps": 4,
+    "num_queries": 2,
+    "elapsed_seconds": 10.94,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_q2": 889.6213043478261,
+      "true_q3": 1113.843164556962,
+      "submitted_q2": 889.62,
+      "submitted_q3": 1113.84
+    }
+  },
+  {
+    "id": "time_02",
+    "category": "time_comparison",
+    "question": "How many active Premium subscriptions were there at the start of Q2 vs the start of Q3 2024?",
+    "answer": {
+      "explanation": "Counted Premium tier subscriptions where the subscription start_date is on or before the target date and the end_date is null or on/after the target date (i.e., active on that date). No status filter was used to ensure we capture subscriptions that may have been cancelled after the date. The counts are 30 active Premium subscriptions on 2024-04-01 (start of Q2) and 28 on 2024-07-01 (start of Q3).",
+      "q2_value": 30,
+      "q3_value": 28
+    },
+    "num_steps": 3,
+    "num_queries": 1,
+    "elapsed_seconds": 3.84,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_q2": 30,
+      "true_q3": 28,
+      "submitted_q2": 30,
+      "submitted_q3": 28
     }
   }
 ]

@@ -61,6 +61,14 @@ or marketing channel, since the root cause is often concentrated in one specific
 slice rather than spread evenly. When a metric is a rate or ratio (like churn rate
 or average order value), be careful to compute the correct numerator and denominator.
 
+IMPORTANT: When determining whether a record (e.g. a subscription) was active AT A
+SPECIFIC PAST DATE, do not filter by its CURRENT status column. A record's status
+reflects its state now, not at that past date — a subscription that has since been
+cancelled may still have been active on an earlier date. To check "active as of
+date X", use only: start_date <= X AND (end_date IS NULL OR end_date >= X). Do not
+add "AND status = 'active'" to this kind of query, since that incorrectly excludes
+records that were active at X but have since changed status.
+
 Once you have enough evidence, submit your answer using the provided submit tool.
 Do not answer in plain text."""
 
@@ -201,7 +209,7 @@ GENERAL_SUBMIT_TOOL = {
 }
 
 
-def investigate_general(question: str, max_steps: int = 8):
+def investigate_general(question: str, max_steps: int = 12):
     """
     Runs the agent loop for a general (non-root-cause) benchmark question.
     Unlike investigate(), this has no bespoke re-verification tool — it just
@@ -263,11 +271,11 @@ def call_with_retry(fn, *args, max_attempts=4, **kwargs):
             print(f"Groq temporarily unavailable ({type(e).__name__}), attempt {attempt}/{max_attempts}. Retrying in {wait_seconds}s...")
             time.sleep(wait_seconds)
         except BadRequestError as e:
-            is_malformed_tool_call = "tool_use_failed" in str(e)
-            if not is_malformed_tool_call or attempt == max_attempts:
+             is_recoverable_parse_issue = "tool_use_failed" in str(e) or "output_parse_failed" in str(e)
+             if not is_recoverable_parse_issue or attempt == max_attempts:
                 raise
-            print(f"Model produced a malformed tool call, attempt {attempt}/{max_attempts}. Retrying...")
-            time.sleep(2)
+             print(f"Model produced unparseable output, attempt {attempt}/{max_attempts}. Retrying...")
+             time.sleep(2)
 
 
 def investigate(question: str, scenario_key: str, max_steps: int = 15):
@@ -327,6 +335,63 @@ QUESTIONS = {
     "purchase_frequency_drop": "Why are customers ordering less frequently in Q3?",
     "product_mix_effect": "Why did average order value change in Q3, even though no prices changed?",
 }
+
+
+COMPARISON_SUBMIT_TOOL = {
+    "type": "function",
+    "function": {
+        "name": "submit_comparison_answer",
+        "description": "Submit your final answer for a Q2-vs-Q3 comparison question, as two separate numeric values.",
+        "parameters": {
+            "type": "object",
+            "properties": {
+                "q2_value": {"type": "number", "description": "The value for Q2 2024."},
+                "q3_value": {"type": "number", "description": "The value for Q3 2024."},
+                "explanation": {"type": "string"}
+            },
+            "required": ["q2_value", "q3_value", "explanation"]
+        }
+    }
+}
+
+
+def investigate_comparison(question: str, max_steps: int = 12):
+    """Like investigate_general, but for Q2-vs-Q3 comparison questions, using a
+    structured two-value submission instead of free text — avoids the ambiguity
+    of parsing numbers back out of a sentence."""
+    tool_schemas = BASE_TOOL_SCHEMAS + [COMPARISON_SUBMIT_TOOL]
+    messages = [
+        {"role": "system", "content": SYSTEM_INSTRUCTION},
+        {"role": "user", "content": question}
+    ]
+    trace = []
+
+    for step in range(max_steps):
+        response = call_with_retry(
+            client.chat.completions.create,
+            model=MODEL, messages=messages, tools=tool_schemas,
+        )
+        message = response.choices[0].message
+        messages.append(message)
+
+        if not message.tool_calls:
+            messages.append({"role": "user", "content": "Please use the submit_comparison_answer tool, not plain text."})
+            continue
+
+        for tool_call in message.tool_calls:
+            tool_name = tool_call.function.name
+            tool_args = json.loads(tool_call.function.arguments)
+
+            if tool_name == "submit_comparison_answer":
+                trace.append({"step": step + 1, "tool": tool_name, "args": tool_args})
+                return tool_args, trace
+
+            tool_fn = AVAILABLE_TOOLS[tool_name]
+            result = tool_fn(**tool_args)
+            trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "result": result})
+            messages.append({"role": "tool", "tool_call_id": tool_call.id, "name": tool_name, "content": json.dumps(result)})
+
+    return {"q2_value": None, "q3_value": None, "explanation": "Reached max steps without submitting."}, trace
 
 
 if __name__ == "__main__":

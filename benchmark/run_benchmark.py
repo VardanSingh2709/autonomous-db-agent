@@ -2,7 +2,7 @@ import sys, os, json, time, re, argparse
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from benchmark.questions import BENCHMARK_QUESTIONS
-from app.agents.investigator import investigate, investigate_general
+from app.agents.investigator import investigate, investigate_general, investigate_comparison
 
 
 def extract_number(text):
@@ -11,6 +11,23 @@ def extract_number(text):
         return None
     match = re.search(r"-?\d+\.?\d*", str(text).replace(",", ""))
     return float(match.group()) if match else None
+
+
+def grade_comparison_question(ground_truth_entry, submitted_q2, submitted_q3):
+    if ground_truth_entry["status"] != "ok" or not ground_truth_entry["result"]:
+        return {"gradable": False, "reason": "ground truth itself failed to compute"}
+
+    true_row = ground_truth_entry["result"][0]
+    true_q2, true_q3 = true_row.get("q2"), true_row.get("answer")
+
+    def close(a, b):
+        if a is None or b is None:
+            return False
+        return abs(a - b) <= (abs(b) * 0.02 + 0.01)
+
+    correct = close(submitted_q2, true_q2) and close(submitted_q3, true_q3)
+    return {"gradable": True, "correct": correct, "true_q2": true_q2, "true_q3": true_q3,
+            "submitted_q2": submitted_q2, "submitted_q3": submitted_q3}
 
 
 def grade_general_question(question_def, ground_truth_entry, submitted_answer):
@@ -28,7 +45,6 @@ def grade_general_question(question_def, ground_truth_entry, submitted_answer):
         correct = abs(submitted_num - true_num) <= (abs(true_num) * 0.02 + 0.01)
         return {"gradable": True, "correct": correct, "true_value": true_value, "submitted": submitted_answer}
 
-    # Fall back to a loose string comparison for non-numeric answers (e.g. region/category names)
     correct = str(true_value).strip().lower() in str(submitted_answer).strip().lower()
     return {"gradable": True, "correct": correct, "true_value": true_value, "submitted": submitted_answer}
 
@@ -42,7 +58,11 @@ def run(category_filter=None, limit=None):
     if os.path.exists("benchmark/results.json"):
         with open("benchmark/results.json") as f:
             existing_results = json.load(f)
-            completed_ids = {r["id"] for r in existing_results if "error" not in r}
+            completed_ids = {
+                r["id"] for r in existing_results
+                if "error" not in r and r.get("answer", {}).get("answer") is not None
+                or ("error" not in r and r.get("answer", {}).get("q2_value") is not None)
+            }
 
     questions = BENCHMARK_QUESTIONS
     if category_filter:
@@ -65,6 +85,11 @@ def run(category_filter=None, limit=None):
                 answer, trace = investigate(q["question"], q["scenario_key"])
                 verification = next((e["verification"] for e in reversed(trace) if "verification" in e), None)
                 grading = {"gradable": True, "correct": bool(verification and verification.get("verified"))}
+
+            elif q["category"] == "time_comparison":
+                answer, trace = investigate_comparison(q["question"])
+                grading = grade_comparison_question(ground_truth[q["id"]], answer.get("q2_value"), answer.get("q3_value"))
+
             else:
                 answer, trace = investigate_general(q["question"])
                 if q["ground_truth_type"] == "sql":
