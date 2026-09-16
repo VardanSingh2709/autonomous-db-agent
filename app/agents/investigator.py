@@ -210,12 +210,6 @@ GENERAL_SUBMIT_TOOL = {
 
 
 def investigate_general(question: str, max_steps: int = 12):
-    """
-    Runs the agent loop for a general (non-root-cause) benchmark question.
-    Unlike investigate(), this has no bespoke re-verification tool — it just
-    captures the agent's submitted answer. Grading happens externally, by
-    comparing against benchmark/ground_truth.json.
-    """
     tool_schemas = BASE_TOOL_SCHEMAS + [GENERAL_SUBMIT_TOOL]
     messages = [
         {"role": "system", "content": SYSTEM_INSTRUCTION},
@@ -232,6 +226,9 @@ def investigate_general(question: str, max_steps: int = 12):
         messages.append(message)
 
         if not message.tool_calls:
+            # Capture the plain-text response instead of discarding it —
+            # this may be a legitimate refusal, not just a formatting slip.
+            trace.append({"step": step + 1, "tool": None, "plain_text_response": message.content})
             messages.append({"role": "user", "content": "Please use the submit_answer tool, not plain text."})
             continue
 
