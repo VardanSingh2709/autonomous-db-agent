@@ -69,6 +69,14 @@ date X", use only: start_date <= X AND (end_date IS NULL OR end_date >= X). Do n
 add "AND status = 'active'" to this kind of query, since that incorrectly excludes
 records that were active at X but have since changed status.
 
+IMPORTANT: If a question is vague or underspecified (e.g. it does not say which
+metric, dimension, or time period to look at — like "how are we doing?" or "what
+changed?"), you cannot ask a follow-up question in this setting. Instead, you MUST
+explicitly state, as the first sentence of your answer, which specific
+interpretation you chose and why (e.g. "Since no metric was specified, I checked
+overall revenue as the most common business health indicator."). Never silently
+answer a vague question as if it had only one obvious meaning.
+
 Once you have enough evidence, submit your answer using the provided submit tool.
 Do not answer in plain text."""
 
@@ -201,15 +209,19 @@ GENERAL_SUBMIT_TOOL = {
             "type": "object",
             "properties": {
                 "answer": {"type": "string", "description": "The final answer, as a plain value (e.g. '60', 'North', '17997.75')."},
-                "explanation": {"type": "string", "description": "One sentence on how you found this."}
+                "explanation": {"type": "string", "description": "One sentence on how you found this."},
+                "stated_assumption": {
+                    "type": "string",
+                    "description": "REQUIRED if the question was ambiguous or underspecified: state which specific interpretation you chose. Leave empty if the question was already unambiguous."
+                }
             },
-            "required": ["answer", "explanation"]
+            "required": ["answer", "explanation", "stated_assumption"]
         }
     }
 }
 
 
-def investigate_general(question: str, max_steps: int = 12):
+def investigate_general(question: str, max_steps: int = 15):
     tool_schemas = BASE_TOOL_SCHEMAS + [GENERAL_SUBMIT_TOOL]
     messages = [
         {"role": "system", "content": SYSTEM_INSTRUCTION},

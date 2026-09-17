@@ -500,54 +500,6 @@
     }
   },
   {
-    "id": "ambig_01",
-    "category": "ambiguous",
-    "question": "Why did things get worse?",
-    "answer": {
-      "answer": "Paid search sales collapsed in Q3 (down ~78%), and Electronics category sales fell ~32%, driving the overall revenue decline.",
-      "explanation": "Compared Q2 vs Q3, total sales dropped 13.9%; the paid_search channel fell from 29,846 to 6,399 and Electronics from 32,543 to 21,945, pinpointing the cause."
-    },
-    "num_steps": 12,
-    "num_queries": 10,
-    "elapsed_seconds": 125.92,
-    "grading": {
-      "gradable": false,
-      "reason": "behavioral \u2014 requires manual review"
-    }
-  },
-  {
-    "id": "ambig_02",
-    "category": "ambiguous",
-    "question": "How are we doing?",
-    "answer": {
-      "answer": "-14% revenue decline (Q3 vs Q2), with subscriptions down from 85 to 75 (12% drop)",
-      "explanation": "Calculated total order revenue for Q2 (Apr\u2011Jun) and Q3 (Jul\u2011Sep) from orders and order_items, showing a drop from 102,306.45 to 87,993.61 (~\u201114%). Counted active subscriptions as of 30\u2011Jun and 30\u2011Sep, showing a decrease from 85 to 75 (\u201112%). Further breakdown revealed the biggest revenue losses in the North region and the Electronics category, and a sharp decline in email and paid_search campaign performance."
-    },
-    "num_steps": 10,
-    "num_queries": 8,
-    "elapsed_seconds": 128.81,
-    "grading": {
-      "gradable": false,
-      "reason": "behavioral \u2014 requires manual review"
-    }
-  },
-  {
-    "id": "ambig_03",
-    "category": "ambiguous",
-    "question": "What changed?",
-    "answer": {
-      "answer": "Electronics revenue in the North region fell sharply (\u2248$9,250) from Q2 to Q3, driving the overall revenue decline.",
-      "explanation": "Compared Q2 and Q3 2024 order revenue; total fell $14,313. Region breakdown showed North down $8,934, and category breakdown showed Electronics down $10,598, with North Electronics alone dropping $9,249, identifying it as the main change."
-    },
-    "num_steps": 11,
-    "num_queries": 9,
-    "elapsed_seconds": 187.39,
-    "grading": {
-      "gradable": false,
-      "reason": "behavioral \u2014 requires manual review"
-    }
-  },
-  {
     "id": "ambig_04",
     "category": "ambiguous",
     "question": "Is the business healthy?",
@@ -558,22 +510,6 @@
     "num_steps": 11,
     "num_queries": 9,
     "elapsed_seconds": 172.03,
-    "grading": {
-      "gradable": false,
-      "reason": "behavioral \u2014 requires manual review"
-    }
-  },
-  {
-    "id": "ambig_05",
-    "category": "ambiguous",
-    "question": "Why did numbers drop?",
-    "answer": {
-      "answer": "The Q3 decline was driven by a sharp drop in Electronics sales and a collapse of paid\u2011search marketing revenue (especially in the North region).",
-      "explanation": "Q2 revenue was $102,306 vs $87,994 in Q3. Electronics fell from $32,543 to $21,945 and paid_search revenue fell from $29,846 to $6,399, the largest contributors to the overall drop."
-    },
-    "num_steps": 6,
-    "num_queries": 4,
-    "elapsed_seconds": 85.1,
     "grading": {
       "gradable": false,
       "reason": "behavioral \u2014 requires manual review"
@@ -718,6 +654,74 @@
     "num_steps": 0,
     "num_queries": 0,
     "elapsed_seconds": 49.15,
+    "grading": {
+      "gradable": false,
+      "reason": "behavioral \u2014 requires manual review"
+    }
+  },
+  {
+    "id": "ambig_01",
+    "category": "ambiguous",
+    "question": "Why did things get worse?",
+    "answer": {
+      "answer": "Revenue fell from $102,306.45 in Q2 to $87,993.61 in Q3, a 14% drop, driven mainly by a $10,598 decline in Electronics sales (especially in the North region) and a $23,447 plunge in revenue from paid\u2011search campaigns.",
+      "explanation": "Compared Q2 vs Q3 order revenue, then broke it down by region, product category, and marketing channel; the largest absolute drops were in North region, Electronics category, and paid_search channel.",
+      "stated_assumption": "Because the question was vague, I interpreted \"things got worse\" as overall revenue declining between Q2 and Q3 2024, the most common health indicator."
+    },
+    "num_steps": 7,
+    "num_queries": 5,
+    "elapsed_seconds": 104.4,
+    "grading": {
+      "gradable": false,
+      "reason": "behavioral \u2014 requires manual review"
+    }
+  },
+  {
+    "id": "ambig_02",
+    "category": "ambiguous",
+    "question": "How are we doing?",
+    "answer": {
+      "answer": "-13.9% (revenue decreased from $102,306.45 in Q2 2024 to $87,993.61 in Q3 2024)",
+      "explanation": "I interpreted \u201chow are we doing?\u201d as overall revenue performance, a common health indicator. I summed order_items (quantity\u202f\u00d7\u202funit_price) for orders dated in Q2 (April\u2011June) and Q3 (July\u2011September) 2024, then calculated the percent change.",
+      "stated_assumption": "Since no specific metric was given, I chose total revenue as the indicator to assess performance."
+    },
+    "num_steps": 6,
+    "num_queries": 3,
+    "elapsed_seconds": 80.56,
+    "grading": {
+      "gradable": false,
+      "reason": "behavioral \u2014 requires manual review"
+    }
+  },
+  {
+    "id": "ambig_03",
+    "category": "ambiguous",
+    "question": "What changed?",
+    "answer": {
+      "answer": "Total revenue fell from $102,306.45 in Q2 2024 to $87,993.61 in Q3 2024 (a drop of $14,312.84, \u224814%). The decline is concentrated in the Electronics category, whose revenue fell from $32,543.40 to $21,944.95, while other categories were relatively stable.",
+      "explanation": "I summed order_items (quantity \u00d7 unit_price) per quarter to get overall revenue, then broke it down by product category. The overall drop was driven mainly by a sharp decrease in Electronics sales.",
+      "stated_assumption": "Because the question was vague, I interpreted \u201cWhat changed?\u201d as a change in overall revenue between Q2 and Q3 2024, the most common high\u2011level business health metric."
+    },
+    "num_steps": 6,
+    "num_queries": 3,
+    "elapsed_seconds": 106.4,
+    "grading": {
+      "gradable": false,
+      "reason": "behavioral \u2014 requires manual review"
+    }
+  },
+  {
+    "id": "ambig_05",
+    "category": "ambiguous",
+    "question": "Why did numbers drop?",
+    "answer": {
+      "answer": "Reduced Beauty orders, weaker Spring Sale campaign, and higher subscription churn",
+      "explanation": "Compared Q2 to Q3, total orders fell 13.9% (280\u2192244) and revenue fell. The drop was concentrated in the Beauty category (orders 85\u219254) and the Spring Sale campaign (orders 80\u219251). Subscription churn doubled (ended subscriptions 5\u219210) reducing active subscriptions from 85 to 75. These factors explain the overall numbers decline.",
+      "stated_assumption": "I interpreted \"numbers\" as overall order count/revenue, a common business health metric."
+    },
+    "num_steps": 11,
+    "num_queries": 9,
+    "elapsed_seconds": 173.98,
     "grading": {
       "gradable": false,
       "reason": "behavioral \u2014 requires manual review"
