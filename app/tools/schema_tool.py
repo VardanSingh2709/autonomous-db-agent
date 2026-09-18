@@ -1,6 +1,6 @@
 import sys, os
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from app.database.connection import run_query
+from app.database.connection import run_agent_query
 
 
 def inspect_schema() -> list:
@@ -15,4 +15,4 @@ def inspect_schema() -> list:
     WHERE table_schema = 'public'
     ORDER BY table_name, ordinal_position;
     """
-    return run_query(sql)
+    return run_agent_query(sql)

@@ -1,29 +1,35 @@
-import sys, os
+import sys, os, re
 sys.path.append(os.path.dirname(os.path.dirname(os.path.dirname(__file__))))
-from app.database.connection import run_query
+from app.database.connection import run_agent_query
+from app.security.audit_log import log_query
 from sqlalchemy.exc import ProgrammingError
 
-# Minimal, keyword-based safety net. This is NOT a complete defense (Phase 14
-# builds a proper one — a dedicated read-only database role, which blocks
-# writes at the database level regardless of what SQL text looks like). This
-# is just enough to stop obviously destructive statements before that exists.
 FORBIDDEN_KEYWORDS = ["DROP", "DELETE", "UPDATE", "INSERT", "ALTER", "TRUNCATE", "GRANT", "REVOKE"]
 
 
 def execute_readonly_sql(query: str) -> list | dict:
     """
-    Executes a read-only SQL SELECT query and returns the results. Only use
-    SELECT statements. Never use INSERT, UPDATE, DELETE, DROP, or any
-    statement that modifies data. If the query has a syntax or reference
-    error, you will receive an error message back — read it carefully,
-    fix the specific issue, and try again.
+    Executes a read-only SQL SELECT query and returns the results (max 500 rows).
+    Only use SELECT statements. Never use INSERT, UPDATE, DELETE, DROP, or any
+    statement that modifies data. If the query has a syntax or reference error,
+    you will receive an error message back — read it carefully, fix the issue,
+    and try again.
     """
-    upper_query = query.upper()
+    stripped = query.strip().upper()
+
+    if not (stripped.startswith("SELECT") or stripped.startswith("WITH")):
+        log_query(query, "refused: not a SELECT/WITH statement")
+        return {"error": "Refused: only SELECT (or WITH ... SELECT) statements are permitted."}
+
     for keyword in FORBIDDEN_KEYWORDS:
-        if keyword in upper_query:
-            return {"error": f"Refused: query contains forbidden keyword '{keyword}'. Only read-only SELECT statements are permitted."}
+        if re.search(rf"\b{keyword}\b", stripped):
+            log_query(query, f"refused: forbidden keyword {keyword}")
+            return {"error": f"Refused: query contains forbidden keyword '{keyword}'."}
 
     try:
-        return run_query(query)
+        result = run_agent_query(query)
+        log_query(query, "executed")
+        return result
     except ProgrammingError as e:
+        log_query(query, f"error: {e.orig}")
         return {"error": str(e.orig)}
