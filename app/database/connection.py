@@ -42,6 +42,30 @@ def run_query(sql: str, params: dict = None):
         ]
 
 
+AGENT_DATABASE_URL = os.getenv("AGENT_DATABASE_URL")
+agent_engine = create_engine(
+    AGENT_DATABASE_URL,
+    connect_args={"options": "-c statement_timeout=10000"}  # 10 second query timeout, in milliseconds
+)
+
+
+def run_agent_query(sql: str, params: dict = None, max_rows: int = 500):
+    """
+    Like run_query, but uses the restricted read-only database role and
+    enforces a result-size limit. This is the ONLY function agent tools
+    should use to touch the database.
+    """
+    with agent_engine.connect() as connection:
+        result = connection.execute(text(sql), params or {})
+        rows = result.mappings().all()
+        if len(rows) > max_rows:
+            rows = rows[:max_rows]
+        return [
+            {key: _make_json_safe(value) for key, value in row.items()}
+            for row in rows
+        ]
+
+
 if __name__ == "__main__":
     value = test_connection()
     print(f"Connection successful. Test query returned: {value}")

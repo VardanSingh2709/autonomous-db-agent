@@ -1,0 +1,538 @@
+[
+  {
+    "id": "simple_01",
+    "category": "simple",
+    "question": "How many customers do we have?",
+    "answer": "We have a total of **60 customers**.",
+    "sql": "SELECT COUNT(*) AS total_customers FROM customers;",
+    "error": null,
+    "elapsed_seconds": 2.13,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 60
+    }
+  },
+  {
+    "id": "simple_02",
+    "category": "simple",
+    "question": "How many products do we sell?",
+    "answer": "We sell\u202f9\u202fdifferent products.",
+    "sql": "SELECT COUNT(DISTINCT product_id) AS products_sold\nFROM order_items\nWHERE quantity > 0;",
+    "error": null,
+    "elapsed_seconds": 4.01,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "true_value": 12
+    }
+  },
+  {
+    "id": "simple_03",
+    "category": "simple",
+    "question": "How many regions do we operate in?",
+    "answer": "We operate in **four** distinct regions.",
+    "sql": "SELECT COUNT(DISTINCT region_id) AS region_count\nFROM orders;",
+    "error": null,
+    "elapsed_seconds": 1.98,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "note": "manually verified (non-numeric answer format)"
+    }
+  },
+  {
+    "id": "simple_04",
+    "category": "simple",
+    "question": "How many orders have been placed in total?",
+    "answer": "A total of **194 orders** have been placed.",
+    "sql": "SELECT COUNT(*) AS total_orders\nFROM orders;",
+    "error": null,
+    "elapsed_seconds": 1.95,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 194
+    }
+  },
+  {
+    "id": "simple_05",
+    "category": "simple",
+    "question": "How many product categories are there?",
+    "answer": "There are\u202f4\u202fproduct categories.",
+    "sql": "SELECT COUNT(*) AS category_count FROM product_categories;",
+    "error": null,
+    "elapsed_seconds": 4.45,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 4
+    }
+  },
+  {
+    "id": "simple_06",
+    "category": "simple",
+    "question": "How many customers are in the North region?",
+    "answer": "There are\u202f15\u202fcustomers in the North region.",
+    "sql": "SELECT COUNT(*) AS north_region_customers\nFROM customers c\nJOIN regions r ON c.region_id = r.id\nWHERE r.name = 'North';",
+    "error": null,
+    "elapsed_seconds": 2.75,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 15
+    }
+  },
+  {
+    "id": "simple_07",
+    "category": "simple",
+    "question": "How many active subscriptions do we have?",
+    "answer": "You currently have\u202f75\u202factive subscriptions.",
+    "sql": "SELECT COUNT(*) AS active_subscriptions\nFROM subscriptions\nWHERE status = 'active'\n  AND start_date <= CURRENT_DATE\n  AND (end_date IS NULL OR end_date >= CURRENT_DATE);",
+    "error": null,
+    "elapsed_seconds": 4.28,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 75
+    }
+  },
+  {
+    "id": "simple_08",
+    "category": "simple",
+    "question": "How many cancelled subscriptions do we have?",
+    "answer": "We currently have **15 cancelled subscriptions**.",
+    "sql": "SELECT COUNT(*) AS cancelled_subscriptions\nFROM subscriptions\nWHERE status = 'cancelled';",
+    "error": null,
+    "elapsed_seconds": 1.81,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 15
+    }
+  },
+  {
+    "id": "simple_09",
+    "category": "simple",
+    "question": "What is the price of the Product A - Wireless Earbuds?",
+    "answer": "The price of Product\u202fA \u2013 Wireless Earbuds is **$79.99**.",
+    "sql": "SELECT price FROM products WHERE name = 'Product A - Wireless Earbuds' LIMIT 1;",
+    "error": null,
+    "elapsed_seconds": 8.98,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 79.99
+    }
+  },
+  {
+    "id": "simple_10",
+    "category": "simple",
+    "question": "How many marketing campaigns have we run?",
+    "answer": "You\u2019ve run **5** marketing campaigns.",
+    "sql": "SELECT COUNT(*) AS total_campaigns FROM marketing_campaigns;",
+    "error": null,
+    "elapsed_seconds": 6.42,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 5
+    }
+  },
+  {
+    "id": "agg_01",
+    "category": "aggregation",
+    "question": "What is our total revenue across all time?",
+    "answer": "Our total revenue to date is **$190,300.06**.",
+    "sql": "SELECT SUM(oi.quantity * oi.unit_price) AS total_revenue\nFROM order_items AS oi;",
+    "error": null,
+    "elapsed_seconds": 5.76,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 190300.06
+    }
+  },
+  {
+    "id": "agg_02",
+    "category": "aggregation",
+    "question": "What is the average order value across all orders?",
+    "answer": "The average total value of an order is about **$981** (precisely $980.93).",
+    "sql": "SELECT AVG(order_total) AS average_order_value\nFROM (\n    SELECT o.id,\n           COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS order_total\n    FROM orders o\n    LEFT JOIN order_items oi ON oi.order_id = o.id\n    GROUP BY o.id\n) AS sub;",
+    "error": null,
+    "elapsed_seconds": 6.04,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 980.9281443298969
+    }
+  },
+  {
+    "id": "agg_03",
+    "category": "aggregation",
+    "question": "What is the total revenue generated by the North region?",
+    "answer": "The North region generated a total revenue of **$51,557.44**.",
+    "sql": "SELECT SUM(oi.quantity * oi.unit_price) AS total_revenue\nFROM orders o\nJOIN regions r ON o.region_id = r.id\nJOIN order_items oi ON oi.order_id = o.id\nWHERE r.name = 'North';",
+    "error": null,
+    "elapsed_seconds": 5.53,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 51557.44
+    }
+  },
+  {
+    "id": "agg_04",
+    "category": "aggregation",
+    "question": "What is the average price of products in the Electronics category?",
+    "answer": "The average price of products in the **Electronics** category is about **$53.32**.",
+    "sql": "SELECT AVG(p.price) AS average_price\nFROM products p\nJOIN product_categories pc ON p.category_id = pc.id\nWHERE pc.name = 'Electronics';",
+    "error": null,
+    "elapsed_seconds": 5.18,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 53.32333333333333
+    }
+  },
+  {
+    "id": "agg_05",
+    "category": "aggregation",
+    "question": "What is the total quantity of items sold?",
+    "answer": "The total quantity of items sold is **3,494**.",
+    "sql": "SELECT SUM(quantity) AS total_quantity_sold FROM order_items;",
+    "error": null,
+    "elapsed_seconds": 2.09,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 3494
+    }
+  },
+  {
+    "id": "agg_06",
+    "category": "aggregation",
+    "question": "What is the average subscription duration, in days, for cancelled subscriptions?",
+    "answer": "The average cancelled subscription lasts about **415 days** (approximately\u202f414.7\u202fdays).",
+    "sql": "SELECT AVG(end_date::date - start_date::date) AS avg_subscription_duration_days\nFROM subscriptions\nWHERE status = 'cancelled';",
+    "error": null,
+    "elapsed_seconds": 5.22,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 414.6666666666667
+    }
+  },
+  {
+    "id": "agg_07",
+    "category": "aggregation",
+    "question": "What is the highest-priced product we sell, and what does it cost?",
+    "answer": "The most expensive item we sell is the **Ceramic Cookware Set**, priced at **$89.99** (our cost for it is $40.00).",
+    "sql": "SELECT name, price, cost\nFROM products\nORDER BY price DESC\nLIMIT 1;",
+    "error": null,
+    "elapsed_seconds": 1.88,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 89.99
+    }
+  },
+  {
+    "id": "agg_08",
+    "category": "aggregation",
+    "question": "What is the total revenue generated through the paid_search marketing channel?",
+    "answer": "The paid\u2011search marketing channel generated a total revenue of **$36,245**.",
+    "sql": "SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN marketing_campaigns mc ON o.campaign_id = mc.id\nWHERE mc.channel = 'paid_search';",
+    "error": null,
+    "elapsed_seconds": 1.61,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 36245.0
+    }
+  },
+  {
+    "id": "join_01",
+    "category": "joins",
+    "question": "Which product category generates the most total revenue?",
+    "answer": "The **Apparel** category generates the highest total revenue, amounting to roughly **$65,915**.",
+    "sql": "SELECT pc.name AS product_category,\n       SUM(oi.quantity * oi.unit_price) AS total_revenue\nFROM order_items oi\nJOIN orders o ON oi.order_id = o.id\nJOIN products p ON oi.product_id = p.id\nJOIN product_categories pc ON p.category_id = pc.id\nGROUP BY pc.id, pc.name\nORDER BY total_revenue DESC\nLIMIT 1;",
+    "error": null,
+    "elapsed_seconds": 8.48,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": "Apparel"
+    }
+  },
+  {
+    "id": "join_02",
+    "category": "joins",
+    "question": "How many orders were placed by customers in the East region?",
+    "answer": "There were\u202f43\u202forders placed by customers in the East region.",
+    "sql": "SELECT COUNT(*) AS order_count\nFROM orders o\nJOIN customers c ON o.customer_id = c.id\nJOIN regions r ON c.region_id = r.id\nWHERE r.name = 'East';",
+    "error": null,
+    "elapsed_seconds": 5.95,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 43
+    }
+  },
+  {
+    "id": "join_03",
+    "category": "joins",
+    "question": "What is the total revenue generated by the 'Search Ads Q3' campaign?",
+    "answer": "The \u201cSearch Ads\u202fQ3\u201d campaign generated total revenue of **$6,399.20**.",
+    "sql": "SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total_revenue\nFROM marketing_campaigns mc\nJOIN orders o ON o.campaign_id = mc.id\nJOIN order_items oi ON oi.order_id = o.id\nWHERE mc.name = 'Search Ads Q3';",
+    "error": null,
+    "elapsed_seconds": 3.03,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 6399.2
+    }
+  },
+  {
+    "id": "join_04",
+    "category": "joins",
+    "question": "How many distinct customers have an active Enterprise subscription?",
+    "answer": "There are **28 distinct customers** with an active Enterprise subscription.",
+    "sql": "SELECT COUNT(DISTINCT customer_id) AS distinct_customers\nFROM subscriptions\nWHERE tier = 'Enterprise'\n  AND status = 'active'\n  AND start_date <= CURRENT_DATE\n  AND (end_date IS NULL OR end_date >= CURRENT_DATE);",
+    "error": null,
+    "elapsed_seconds": 6.55,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 28
+    }
+  },
+  {
+    "id": "join_05",
+    "category": "joins",
+    "question": "What is the total revenue from products in the 'Home & Kitchen' category?",
+    "answer": "The total revenue generated by products in the **Home\u202f&\u202fKitchen** category is **$32,842.50**.",
+    "sql": "SELECT COALESCE(SUM(oi.quantity * oi.unit_price), 0) AS total_revenue\nFROM order_items oi\nJOIN products p ON oi.product_id = p.id\nJOIN product_categories pc ON p.category_id = pc.id\nWHERE pc.name = 'Home & Kitchen';",
+    "error": null,
+    "elapsed_seconds": 2.99,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 32842.5
+    }
+  },
+  {
+    "id": "join_06",
+    "category": "joins",
+    "question": "How many distinct orders included at least one Electronics product?",
+    "answer": "There are **145 distinct orders** that contain at least one product from the Electronics category.",
+    "sql": "SELECT COUNT(DISTINCT oi.order_id) AS electronics_order_count\nFROM order_items oi\nJOIN products p ON oi.product_id = p.id\nJOIN product_categories pc ON p.category_id = pc.id\nWHERE pc.name = 'Electronics';",
+    "error": null,
+    "elapsed_seconds": 3.32,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 145
+    }
+  },
+  {
+    "id": "join_07",
+    "category": "joins",
+    "question": "What is the average order value for orders from returning customers?",
+    "answer": "The average order value for orders placed by returning customers is approximately **$875.25**.",
+    "sql": "SELECT AVG(order_total) AS avg_order_value\nFROM (\n    SELECT o.id, SUM(oi.quantity * oi.unit_price) AS order_total\n    FROM orders o\n    JOIN customers c ON o.customer_id = c.id\n    JOIN order_items oi ON oi.order_id = o.id\n    WHERE c.is_returning = TRUE\n    GROUP BY o.id\n) AS sub;",
+    "error": null,
+    "elapsed_seconds": 2.12,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": 875.2500684931507
+    }
+  },
+  {
+    "id": "join_08",
+    "category": "joins",
+    "question": "Which region has the highest number of active subscriptions among its customers?",
+    "answer": "The region with the most active subscriptions is **South**.",
+    "sql": "SELECT r.name\nFROM regions r\nJOIN customers c ON c.region_id = r.id\nJOIN subscriptions s ON s.customer_id = c.id\nWHERE s.status = 'active'\nGROUP BY r.id, r.name\nORDER BY COUNT(*) DESC\nLIMIT 1;",
+    "error": null,
+    "elapsed_seconds": 2.31,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_value": "South"
+    }
+  },
+  {
+    "id": "time_01",
+    "category": "time_comparison",
+    "question": "How did total order count change from Q2 to Q3 2024?",
+    "answer": "The total number of orders fell from **115 in Q2\u202f2024** to **79 in Q3\u202f2024**, a decline of **36 orders** (about a 31% drop).",
+    "sql": "SELECT \n    SUM(CASE WHEN order_date >= DATE '2024-04-01' AND order_date < DATE '2024-07-01' THEN 1 ELSE 0 END) AS q2_order_count,\n    SUM(CASE WHEN order_date >= DATE '2024-07-01' AND order_date < DATE '2024-10-01' THEN 1 ELSE 0 END) AS q3_order_count,\n    SUM(CASE WHEN order_date >= DATE '2024-07-01' AND order_date < DATE '2024-10-01' THEN 1 ELSE 0 END) -\n    SUM(CASE WHEN order_date >= DATE '2024-04-01' AND order_date < DATE '2024-07-01' THEN 1 ELSE 0 END) AS order_count_change\nFROM orders\nWHERE order_date >= DATE '2024-04-01' AND order_date < DATE '2024-10-01';",
+    "error": null,
+    "elapsed_seconds": 3.84,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_first": 115,
+      "true_second": 79
+    }
+  },
+  {
+    "id": "time_02",
+    "category": "time_comparison",
+    "question": "How many active Premium subscriptions were there at the start of Q2 vs the start of Q3 2024?",
+    "answer": "At the beginning of Q2\u202f2024 (April\u202f1) there were **21** active Premium subscriptions, and at the beginning of Q3\u202f2024 (July\u202f1) there were also **21** active Premium subscriptions. In other words, the count remained unchanged between the two dates.",
+    "sql": "SELECT \n    COUNT(CASE \n        WHEN tier = 'Premium' \n             AND status = 'active' \n             AND start_date <= DATE '2024-04-01' \n             AND (end_date IS NULL OR end_date >= DATE '2024-04-01') \n        THEN 1 \n    END) AS active_premium_start_q2,\n    COUNT(CASE \n        WHEN tier = 'Premium' \n             AND status = 'active' \n             AND start_date <= DATE '2024-07-01' \n             AND (end_date IS NULL OR end_date >= DATE '2024-07-01') \n        THEN 1 \n    END) AS active_premium_start_q3\nFROM subscriptions;",
+    "error": null,
+    "elapsed_seconds": 3.08,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "true_first": 30,
+      "true_second": 28
+    }
+  },
+  {
+    "id": "time_03",
+    "category": "time_comparison",
+    "question": "Compare total revenue on 2024-05-01 vs 2024-08-01.",
+    "answer": "On May\u202f1\u202f2024 the total revenue was **$41,618.10**, whereas on August\u202f1\u202f2024 it was **$30,119.65**.  \nSo revenue on May\u202f1 was about **$11,500 higher** (roughly 38\u202f% more) than on August\u202f1.",
+    "sql": "SELECT\n    SUM(oi.quantity * oi.unit_price) FILTER (WHERE o.order_date = DATE '2024-05-01') AS revenue_2024_05_01,\n    SUM(oi.quantity * oi.unit_price) FILTER (WHERE o.order_date = DATE '2024-08-01') AS revenue_2024_08_01\nFROM orders o\nJOIN order_items oi ON oi.order_id = o.id\nWHERE o.order_date IN (DATE '2024-05-01', DATE '2024-08-01');",
+    "error": null,
+    "elapsed_seconds": 5.63,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_first": 41618.1,
+      "true_second": 30119.65
+    }
+  },
+  {
+    "id": "time_04",
+    "category": "time_comparison",
+    "question": "How many subscriptions were cancelled in Q2 2024 vs Q3 2024?",
+    "answer": "In Q2\u202f2024, there were **5** subscription cancellations, while in Q3\u202f2024 the number rose to **10** cancellations.",
+    "sql": "SELECT \n    SUM(CASE WHEN end_date BETWEEN DATE '2024-04-01' AND DATE '2024-06-30' THEN 1 ELSE 0 END) AS q2_cancellations,\n    SUM(CASE WHEN end_date BETWEEN DATE '2024-07-01' AND DATE '2024-09-30' THEN 1 ELSE 0 END) AS q3_cancellations\nFROM subscriptions\nWHERE status = 'cancelled'\n  AND end_date BETWEEN DATE '2024-04-01' AND DATE '2024-09-30';",
+    "error": null,
+    "elapsed_seconds": 3.17,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_first": 5,
+      "true_second": 10
+    }
+  },
+  {
+    "id": "time_05",
+    "category": "time_comparison",
+    "question": "Compare average order value in Q2 2024 vs Q3 2024.",
+    "answer": "In the second quarter of\u202f2024, the average order value was about **$889.62**.  \nIn the third quarter of\u202f2024, it rose to roughly **$1,113.84**.\n\nThat\u2019s an **increase of about $224.22 per order**, which translates to a **25.2\u202f% growth** from Q2 to Q3.",
+    "sql": "SELECT\n   q2.avg_order_value AS q2_avg_order_value,\n   q3.avg_order_value AS q3_avg_order_value,\n   q3.avg_order_value - q2.avg_order_value AS absolute_change,\n   CASE WHEN q2.avg_order_value = 0 THEN NULL\n        ELSE (q3.avg_order_value - q2.avg_order_value) / q2.avg_order_value * 100\n   END AS pct_change\nFROM (\n   SELECT AVG(order_total) AS avg_order_value\n   FROM (\n     SELECT o.id, SUM(oi.quantity * oi.unit_price) AS order_total\n     FROM orders o\n     JOIN order_items oi ON oi.order_id = o.id\n     WHERE o.order_date >= DATE '2024-04-01' AND o.order_date < DATE '2024-07-01'\n     GROUP BY o.id\n   ) sub_q2\n) q2\nCROSS JOIN (\n   SELECT AVG(order_total) AS avg_order_value\n   FROM (\n     SELECT o.id, SUM(oi.quantity * oi.unit_price) AS order_total\n     FROM orders o\n     JOIN order_items oi ON oi.order_id = o.id\n     WHERE o.order_date >= DATE '2024-07-01' AND o.order_date < DATE '2024-10-01'\n     GROUP BY o.id\n   ) sub_q3\n) q3;",
+    "error": null,
+    "elapsed_seconds": 11.99,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_first": 889.6213043478261,
+      "true_second": 1113.843164556962
+    }
+  },
+  {
+    "id": "time_06",
+    "category": "time_comparison",
+    "question": "How many orders were placed in North region in Q2 2024 vs Q3 2024?",
+    "answer": "In the North region, there were **40 orders** in Q2\u202f2024 and **26 orders** in Q3\u202f2024.",
+    "sql": "SELECT \n    COUNT(*) FILTER (WHERE o.order_date BETWEEN '2024-04-01' AND '2024-06-30') AS q2_orders,\n    COUNT(*) FILTER (WHERE o.order_date BETWEEN '2024-07-01' AND '2024-09-30') AS q3_orders\nFROM orders o\nJOIN regions r ON o.region_id = r.id\nWHERE r.name = 'North'\n  AND o.order_date BETWEEN '2024-04-01' AND '2024-09-30';",
+    "error": null,
+    "elapsed_seconds": 10.3,
+    "grading": {
+      "gradable": true,
+      "correct": true,
+      "true_first": 40,
+      "true_second": 26
+    }
+  },
+  {
+    "id": "rootcause_revenue",
+    "category": "root_cause",
+    "question": "Why did revenue decline in Q3?",
+    "answer": "**What the numbers show**\n\n- **Overall revenue fell** from\u202f$102,306 in Q2 to\u202f$87,994 in Q3 \u2013 a drop of about **14\u202f%**.  \n- The decline is **broad\u2011based**: almost every segment (region, product category, customer type and campaign) posted lower Q3 sales.\n\n**Key contributors to the dip**\n\n| Segment | Q2 Revenue | Q3 Revenue | % Change |\n|---------|------------|------------|----------|\n| **Electronics** (product category) | $32,543 | $21,945 | **\u201133\u202f%** |\n| **North region** | $30,246 | $21,312 | **\u201130\u202f%** |\n| **Spring Sale** (campaign) | $31,495 | $16,347 | **\u201148\u202f%** |\n| **Returning customers** | $68,738 | $59,049 | **\u201114\u202f%** |\n| **New customers** | $33,569 | $28,945 | **\u201114\u202f%** |\n| **Apparel** | $34,195 | $31,720 | **\u20117\u202f%** |\n| **Beauty** | $19,147 | $17,907 | **\u20116\u202f%** |\n| **Home\u202f&\u202fKitchen** | $16,421 | $16,421 | 0\u202f% (flat) |\n\n**Why the decline happened**\n\n1. **Electronics sales collapsed** \u2013 the biggest single\u2011category hit, losing a third of its revenue.  \n2. **The North region underperformed** dramatically, contributing nearly $9\u202fk less than in Q2.  \n3. **The \u201cSpring Sale\u201d campaign, which drove a lot of Q2 revenue, fell off sharply** (down almost half).  \n4. Both **new and returning customers bought less** in Q3, each showing roughly a 14\u202f% dip.  \n5. Other campaigns (e.g., \u201cInfluencer Collab\u201d and \u201cSearch Ads\u202fQ3\u201d) actually grew, but their gains were too small to offset the large losses elsewhere.\n\n**Bottom line:** The Q3 revenue decline is driven mainly by a steep drop in Electronics sales, a weak performance in the North region, and the failure of the Spring Sale campaign to repeat its Q2 success, compounded by a general slowdown in purchasing across both new and returning customers.",
+    "sql": "WITH latest_year AS (\n  SELECT MAX(EXTRACT(YEAR FROM order_date))::int AS yr FROM orders\n), base AS (\n  SELECT\n    o.id AS order_id,\n    o.order_date,\n    EXTRACT(YEAR FROM o.order_date)::int AS yr,\n    CASE WHEN EXTRACT(QUARTER FROM o.order_date) = 3 THEN 'Q3' ELSE 'Q2' END AS qtr,\n    cu.region_id,\n    r.name AS region_name,\n    p.category_id,\n    pc.name AS category_name,\n    o.campaign_id,\n    cm.name AS campaign_name,\n    cu.is_returning,\n    oi.quantity,\n    oi.unit_price,\n    (oi.quantity * oi.unit_price) AS revenue\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN customers cu ON cu.id = o.customer_id\n  JOIN regions r ON r.id = cu.region_id\n  JOIN products p ON p.id = oi.product_id\n  JOIN product_categories pc ON pc.id = p.category_id\n  LEFT JOIN marketing_campaigns cm ON cm.id = o.campaign_id\n  CROSS JOIN latest_year ly\n  WHERE EXTRACT(YEAR FROM o.order_date) = ly.yr\n    AND EXTRACT(QUARTER FROM o.order_date) IN (2,3)\n), agg AS (\n  SELECT\n    'Overall' AS dimension,\n    NULL::text AS name,\n    qtr,\n    SUM(revenue) AS rev\n  FROM base\n  GROUP BY qtr\n\n  UNION ALL\n\n  SELECT\n    'Region' AS dimension,\n    region_name,\n    qtr,\n    SUM(revenue)\n  FROM base\n  GROUP BY region_name, qtr\n\n  UNION ALL\n\n  SELECT\n    'Product Category' AS dimension,\n    category_name,\n    qtr,\n    SUM(revenue)\n  FROM base\n  GROUP BY category_name, qtr\n\n  UNION ALL\n\n  SELECT\n    'Campaign' AS dimension,\n    campaign_name,\n    qtr,\n    SUM(revenue)\n  FROM base\n  GROUP BY campaign_name, qtr\n\n  UNION ALL\n\n  SELECT\n    'Customer Type' AS dimension,\n    CASE WHEN is_returning THEN 'Returning' ELSE 'New' END,\n    qtr,\n    SUM(revenue)\n  FROM base\n  GROUP BY is_returning, qtr\n)\nSELECT\n  dimension,\n  COALESCE(name, 'All') AS name,\n  SUM(CASE WHEN qtr='Q3' THEN rev END) AS revenue_q3,\n  SUM(CASE WHEN qtr='Q2' THEN rev END) AS revenue_q2,\n  SUM(CASE WHEN qtr='Q3' THEN rev END) - SUM(CASE WHEN qtr='Q2' THEN rev END) AS diff,\n  ROUND(\n    CASE WHEN SUM(CASE WHEN qtr='Q2' THEN rev END)=0 THEN NULL\n    ELSE (SUM(CASE WHEN qtr='Q3' THEN rev END) - SUM(CASE WHEN qtr='Q2' THEN rev END))\n         *100.0 / SUM(CASE WHEN qtr='Q2' THEN rev END)\n    END,2) AS pct_change\nFROM agg\nGROUP BY dimension, name\nORDER BY dimension, name;",
+    "error": null,
+    "elapsed_seconds": 29.77,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "short_facts": [
+        "north",
+        "product a - wireless earbuds"
+      ],
+      "facts_found": 1
+    }
+  },
+  {
+    "id": "rootcause_churn",
+    "category": "root_cause",
+    "question": "Why did churn increase in Q3?",
+    "answer": null,
+    "sql": null,
+    "error": "(psycopg2.ProgrammingError) can't execute an empty query\n(Background on this error at: https://sqlalche.me/e/20/f405)",
+    "elapsed_seconds": 7.78,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "short_facts": [
+        "premium"
+      ],
+      "facts_found": 0
+    }
+  },
+  {
+    "id": "rootcause_conversion",
+    "category": "root_cause",
+    "question": "Why did conversion decline in Q3?",
+    "answer": "The query you ran didn\u2019t return any rows, so there\u2019s no conversion\u2011rate data for Q2\u202f2023 or Q3\u202f2023 to compare. This usually means one of the following:\n\n1. **No orders in the date range** \u2013 The `orders` table (or the join to `order_items`) may not contain any records dated between\u202f2023\u201104\u201101 and\u202f2023\u201109\u201130, so the CTEs produce an empty set.\n\n2. **Quarter label mismatch** \u2013 The `CASE` statement creates the `quarter` column only when the `order_date` falls inside the two ranges you defined. If an order\u2019s date falls outside those windows (e.g., a different fiscal calendar) the `quarter` column will be `NULL`, and those rows are dropped by the `GROUP BY quarter` clause.\n\n3. **Join filtering out rows** \u2013 The `LEFT JOIN` to `marketing_campaigns` is safe, but the inner joins to `order_items` and `customers` require matching rows. If any order is missing related `order_items` or a matching `customer`, it will be excluded.\n\n4. **Data\u2011type or timezone issues** \u2013 If `order_date` is stored as a timestamp with time zone, the literal dates (`DATE '2023\u201107\u201101'`) might not match the exact timestamps, causing the rows to be filtered out.\n\n### What to check next\n\n| Check | How to verify | Possible fix |\n|-------|----------------|--------------|\n| **Existence of orders** | `SELECT MIN(order_date), MAX(order_date) FROM orders;` | If the range is off, adjust the date filter. |\n| **Quarter assignment** | `SELECT order_date, CASE WHEN ... END AS quarter FROM orders LIMIT 10;` | Ensure the `CASE` covers all needed dates. |\n| **Join completeness** | `SELECT o.id FROM orders o LEFT JOIN order_items oi ON oi.order_id=o.id WHERE oi.id IS NULL LIMIT 10;` | Add a `LEFT JOIN` to `order_items` if you want orders without items. |\n| **Data type consistency** | `\\d orders` (or equivalent) to view column types. | Cast timestamps to dates: `DATE(o.order_date) BETWEEN ...`. |\n| **Empty tables** | `SELECT COUNT(*) FROM orders;` etc. | Load or refresh the data source. |\n\nOnce the underlying data is present and the query correctly captures the quarters, you\u2019ll get a result set with conversion rates (orders\u202f\u00f7\u202fcustomers\u202f\u00d7\u202f100). Then you can compare Q2 vs. Q3 and investigate any decline. If you need a revised query after fixing the data issues, just let me know!",
+    "sql": "WITH orders_q AS (\n    SELECT\n        CASE\n            WHEN o.order_date BETWEEN DATE '2023-07-01' AND DATE '2023-09-30' THEN 'Q3_2023'\n            WHEN o.order_date BETWEEN DATE '2023-04-01' AND DATE '2023-06-30' THEN 'Q2_2023'\n        END AS quarter,\n        o.id AS order_id,\n        o.customer_id,\n        c.is_returning,\n        mc.channel,\n        SUM(oi.quantity * oi.unit_price) AS order_revenue\n    FROM orders o\n    JOIN order_items oi ON oi.order_id = o.id\n    JOIN customers c ON c.id = o.customer_id\n    LEFT JOIN marketing_campaigns mc ON mc.id = o.campaign_id\n    WHERE o.order_date BETWEEN DATE '2023-04-01' AND DATE '2023-09-30'\n    GROUP BY quarter, o.id, o.customer_id, c.is_returning, mc.channel\n),\nquarter_agg AS (\n    SELECT\n        quarter,\n        COUNT(DISTINCT customer_id) AS total_customers,\n        COUNT(DISTINCT order_id) AS total_orders,\n        SUM(order_revenue) AS total_revenue,\n        COUNT(DISTINCT CASE WHEN is_returning THEN customer_id END) AS returning_customers,\n        COUNT(DISTINCT CASE WHEN NOT is_returning THEN customer_id END) AS new_customers,\n        COUNT(DISTINCT CASE WHEN channel = 'Email' THEN order_id END) AS email_orders,\n        COUNT(DISTINCT CASE WHEN channel = 'Social' THEN order_id END) AS social_orders,\n        AVG(order_revenue) AS avg_order_value\n    FROM orders_q\n    GROUP BY quarter\n)\nSELECT\n    q.quarter,\n    q.total_customers,\n    q.total_orders,\n    ROUND( (q.total_orders::numeric / NULLIF(q.total_customers,0)) * 100, 2) AS conversion_rate_percent,\n    q.total_revenue,\n    ROUND(q.avg_order_value, 2) AS avg_order_value,\n    q.returning_customers,\n    q.new_customers,\n    q.email_orders,\n    q.social_orders,\n    LAG(ROUND( (q.total_orders::numeric / NULLIF(q.total_customers,0)) * 100, 2)) OVER (ORDER BY q.quarter) AS prior_quarter_conversion_percent\nFROM quarter_agg q\nWHERE q.quarter IN ('Q3_2023','Q2_2023')\nORDER BY q.quarter;",
+    "error": null,
+    "elapsed_seconds": 40.02,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "short_facts": [
+        "paid_search"
+      ],
+      "facts_found": 0
+    }
+  },
+  {
+    "id": "rootcause_frequency",
+    "category": "root_cause",
+    "question": "Why are customers ordering less frequently in Q3?",
+    "answer": "Based on the query you ran, no rows were returned for either Q2\u202f2023 or Q3\u202f2023. That means the dataset you queried doesn\u2019t contain any order records (or the relevant fields are all\u202fNULL) for those quarters, so there\u2019s nothing to compare.\n\nIn other words, the drop\u2011off you\u2019re seeing can\u2019t be explained from this data because the data itself is missing. Here are a few steps you can take next:\n\n1. **Confirm the date range** \u2013 double\u2011check that orders actually exist in the `orders` table for July\u202f1\u202f\u2013\u202fSept\u202f30\u202f2023 (and the prior quarter).  \n2. **Verify the joins** \u2013 the query joins to `customers`, `regions`, `subscriptions`, and `marketing_campaigns`. If any of those tables have missing or mismatched keys, rows could be filtered out.  \n3. **Check for filters** \u2013 make sure there isn\u2019t a global filter (e.g., a default `WHERE` clause, row\u2011level security, or a date\u2011based partition) that\u2019s excluding Q3 data.  \n4. **Run a simpler test** \u2013 try a bare\u2011bones query like `SELECT COUNT(*) FROM orders WHERE order_date BETWEEN '2023-07-01' AND '2023-09-30';` to see whether any orders exist at all for Q3.\n\nOnce you have confirmed that order data is present for Q3, we can rerun the more detailed breakdown and then investigate why ordering frequency might have changed.",
+    "sql": "WITH order_counts AS (\n    SELECT\n        date_trunc('quarter', o.order_date) AS quarter,\n        c.id AS customer_id,\n        c.is_returning,\n        r.name AS region,\n        o.campaign_id,\n        COALESCE(s.status, 'none') AS subscription_status,\n        COUNT(o.id) AS orders_per_customer\n    FROM orders o\n    JOIN customers c ON o.customer_id = c.id\n    LEFT JOIN regions r ON o.region_id = r.id\n    LEFT JOIN LATERAL (\n        SELECT status\n        FROM subscriptions s\n        WHERE s.customer_id = c.id\n          AND s.start_date <= o.order_date\n          AND (s.end_date IS NULL OR s.end_date >= o.order_date)\n        ORDER BY s.start_date DESC\n        LIMIT 1\n    ) s ON true\n    GROUP BY 1,2,3,4,5,6\n),\nquarter_summary AS (\n    SELECT\n        quarter,\n        COUNT(DISTINCT customer_id) AS total_customers,\n        SUM(orders_per_customer) AS total_orders,\n        AVG(orders_per_customer)::numeric(10,2) AS avg_orders_per_customer,\n        AVG(CASE WHEN is_returning THEN 1 ELSE 0 END)::numeric(10,2) AS returning_ratio\n    FROM order_counts\n    GROUP BY quarter\n),\nsegment_breakdown AS (\n    SELECT\n        quarter,\n        'Returning' AS segment,\n        AVG(orders_per_customer)::numeric(10,2) AS avg_orders\n    FROM order_counts\n    WHERE is_returning\n    GROUP BY quarter\n    UNION ALL\n    SELECT\n        quarter,\n        'New' AS segment,\n        AVG(orders_per_customer)::numeric(10,2)\n    FROM order_counts\n    WHERE NOT is_returning\n    GROUP BY quarter\n    UNION ALL\n    SELECT\n        quarter,\n        region AS segment,\n        AVG(orders_per_customer)::numeric(10,2)\n    FROM order_counts\n    GROUP BY quarter, region\n    UNION ALL\n    SELECT\n        quarter,\n        subscription_status AS segment,\n        AVG(orders_per_customer)::numeric(10,2)\n    FROM order_counts\n    GROUP BY quarter, subscription_status\n    UNION ALL\n    SELECT\n        quarter,\n        'Campaign_'||COALESCE(c.name,'None') AS segment,\n        AVG(orders_per_customer)::numeric(10,2)\n    FROM order_counts oc\n    LEFT JOIN marketing_campaigns c ON oc.campaign_id = c.id\n    GROUP BY quarter, c.name\n)\nSELECT\n    qs.quarter,\n    to_char(qs.quarter, 'YYYY-\"Q\"Q') AS quarter_label,\n    qs.total_customers,\n    qs.total_orders,\n    qs.avg_orders_per_customer,\n    qs.returning_ratio,\n    sb.segment,\n    sb.avg_orders\nFROM quarter_summary qs\nJOIN segment_breakdown sb ON sb.quarter = qs.quarter\nWHERE qs.quarter = date_trunc('quarter', DATE '2023-07-01')   -- Q3 2023\n   OR qs.quarter = date_trunc('quarter', DATE '2023-04-01')   -- Q2 2023 for comparison\nORDER BY qs.quarter, sb.segment;",
+    "error": null,
+    "elapsed_seconds": 34.71,
+    "grading": {
+      "gradable": true,
+      "correct": false,
+      "short_facts": [
+        "returning"
+      ],
+      "facts_found": 0
+    }
+  },
+  {
+    "id": "rootcause_mix",
+    "category": "root_cause",
+    "question": "Why did average order value change in Q3, even though no prices changed?",
+    "answer": "The query didn\u2019t return any rows, which means there are no orders in the\u202f2023\u202fquarterly window that match the criteria you specified (orders dated\u202f2023\u201101\u201101\u202fthrough\u202f2023\u201112\u201131). Because the result set is empty, we can\u2019t calculate an average order value for Q3\u2014or any change from the prior quarter\u2014so there\u2019s nothing to explain.\n\n**What this suggests**\n\n| Possibility | Why it matters |\n|-------------|----------------|\n| **No orders in 2023** | If the source tables are empty for that year, the metric simply doesn\u2019t exist yet. |\n| **Date\u2011filter mismatch** | The `DATE_TRUNC('quarter', o.order_date)` expression creates a quarter\u2011start date (e.g.,\u202f2023\u201101\u201101\u202ffor Q1). If the data uses timestamps that fall outside the exact range you filtered (`quarter >= '2023-01-01' AND quarter < '2024-01-01'`), they\u2019ll be excluded. |\n| **Data loading/ETL issue** | New order data may not have been loaded into the `orders`, `order_items`, or `customers` tables for 2023. |\n| **Incorrect timezone handling** | If `order_date` is stored in a timezone that shifts dates across the year boundary, some rows might fall just outside the filter. |\n\n**Next steps to get a meaningful answer**\n\n1. **Verify data existence**  \n   ```sql\n   SELECT MIN(o.order_date), MAX(o.order_date), COUNT(*) \n   FROM orders o;\n   ```  \n   This will confirm whether any orders exist for 2023.\n\n2. **Broaden the filter temporarily** to see any data at all:  \n   ```sql\n   WHERE o.order_date >= DATE '2023-01-01' \n     AND o.order_date <  DATE '2024-01-01'\n   ```  \n   (use the raw `order_date` column instead of the truncated quarter).\n\n3. **Check for nulls or unexpected values** in `campaign_id` or `is_returning` that might be filtering rows out inadvertently.\n\n4. **If data does exist**, re\u2011run the original query after adjusting the date filter (or removing it) to ensure the quarter aggregation works.\n\nOnce you have at least one row of quarterly aggregates, the `change_from_previous_quarter` column will show the difference in average order value between Q3 and Q2, letting you investigate why it moved even though product prices didn\u2019t change.",
+    "sql": "WITH order_stats AS (\n  SELECT\n    o.id AS order_id,\n    DATE_TRUNC('quarter', o.order_date) AS quarter,\n    SUM(oi.quantity * oi.unit_price) AS order_value,\n    SUM(oi.quantity) AS total_quantity,\n    COUNT(DISTINCT oi.product_id) AS distinct_products,\n    (o.campaign_id IS NOT NULL) AS has_campaign,\n    cu.is_returning\n  FROM orders o\n  JOIN order_items oi ON oi.order_id = o.id\n  JOIN customers cu ON cu.id = o.customer_id\n  GROUP BY o.id, DATE_TRUNC('quarter', o.order_date), o.campaign_id, cu.is_returning\n),\nquarter_agg AS (\n  SELECT\n    quarter,\n    ROUND(AVG(order_value)::numeric, 2) AS avg_order_value,\n    ROUND(AVG(total_quantity)::numeric, 2) AS avg_quantity_per_order,\n    ROUND(AVG(distinct_products)::numeric, 2) AS avg_distinct_products,\n    ROUND(100.0 * SUM(CASE WHEN has_campaign THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_orders_with_campaign,\n    ROUND(100.0 * SUM(CASE WHEN is_returning THEN 1 ELSE 0 END) / COUNT(*), 2) AS pct_returning_customers\n  FROM order_stats\n  WHERE quarter >= DATE '2023-01-01' AND quarter < DATE '2024-01-01'\n  GROUP BY quarter\n)\nSELECT\n  to_char(quarter, 'YYYY-\"Q\"Q') AS quarter,\n  avg_order_value,\n  avg_quantity_per_order,\n  avg_distinct_products,\n  pct_orders_with_campaign,\n  pct_returning_customers,\n  ROUND(avg_order_value - LAG(avg_order_value) OVER (ORDER BY quarter), 2) AS change_from_previous_quarter\nFROM quarter_agg\nORDER BY quarter;",
+    "error": null,
+    "elapsed_seconds": 6.54,
+    "grading": {
+      "gradable": false,
+      "reason": "no categorical fact to check for this scenario type"
+    }
+  }
+]
