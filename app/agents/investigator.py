@@ -18,7 +18,8 @@ from app.agents.verification import (
 )
 
 load_dotenv()
-client = Groq(api_key=os.getenv("GROQ_API_KEY"))
+from app.database.connection import get_secret
+client = Groq(api_key=get_secret("GROQ_API_KEY"))
 MODEL = "openai/gpt-oss-120b"
 
 AVAILABLE_TOOLS = {
