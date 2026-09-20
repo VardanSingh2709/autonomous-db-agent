@@ -27,6 +27,24 @@ AVAILABLE_TOOLS = {
     "execute_readonly_sql": execute_readonly_sql,
 }
 
+
+# Fetch the schema ONCE at module load time, since it doesn't change during
+# a session. This saves the agent one full step (an LLM call + tool round-trip)
+# on every single investigation, since it no longer needs to "discover" the
+# same static schema over and over.
+_CACHED_SCHEMA = inspect_schema()
+
+def _format_schema_for_prompt(schema_rows):
+    tables = {}
+    for row in schema_rows:
+        tables.setdefault(row["table_name"], []).append(f"{row['column_name']} ({row['data_type']})")
+    lines = []
+    for table, columns in tables.items():
+        lines.append(f"- {table}({', '.join(columns)})")
+    return "\n".join(lines)
+
+_SCHEMA_TEXT = _format_schema_for_prompt(_CACHED_SCHEMA)
+
 BASE_TOOL_SCHEMAS = [
     {
         "type": "function",
@@ -50,11 +68,17 @@ BASE_TOOL_SCHEMAS = [
     }
 ]
 
-SYSTEM_INSTRUCTION = """You are a careful data analyst investigating a business question
+SYSTEM_INSTRUCTION = f"""You are a careful data analyst investigating a business question
 using a PostgreSQL database. All data in this database is from the year 2024, with
-Q2 = April-June 2024 and Q3 = July-September 2024. Always inspect the schema before
-writing SQL if you haven't already. Use execute_readonly_sql to test hypotheses step
-by step, drilling down from high-level numbers to specific causes.
+Q2 = April-June 2024 and Q3 = July-September 2024.
+
+The database schema is already known — you do NOT need to call inspect_schema first.
+Here it is:
+
+{_SCHEMA_TEXT}
+
+Use execute_readonly_sql to test hypotheses step by step, drilling down from
+high-level numbers to specific causes.
 
 When investigating a change in a metric, consider breaking it down by standard
 business dimensions such as region, product, product category, customer segment,
@@ -71,12 +95,9 @@ add "AND status = 'active'" to this kind of query, since that incorrectly exclud
 records that were active at X but have since changed status.
 
 IMPORTANT: If a question is vague or underspecified (e.g. it does not say which
-metric, dimension, or time period to look at — like "how are we doing?" or "what
-changed?"), you cannot ask a follow-up question in this setting. Instead, you MUST
-explicitly state, as the first sentence of your answer, which specific
-interpretation you chose and why (e.g. "Since no metric was specified, I checked
-overall revenue as the most common business health indicator."). Never silently
-answer a vague question as if it had only one obvious meaning.
+metric, dimension, or time period to look at), you cannot ask a follow-up question
+in this setting. Instead, you MUST explicitly state, as the first sentence of your
+answer, which specific interpretation you chose and why.
 
 Once you have enough evidence, submit your answer using the provided submit tool.
 Do not answer in plain text."""
@@ -288,11 +309,9 @@ def call_with_retry(fn, *args, max_attempts=4, **kwargs):
              time.sleep(2)
 
 
-def investigate(question: str, scenario_key: str, max_steps: int = 15):
-    """Runs a full agentic investigation loop for a given question + scenario type."""
+def investigate(question: str, scenario_key: str, max_steps: int = 15, on_step=None):
     scenario = SCENARIOS[scenario_key]
     tool_schemas = BASE_TOOL_SCHEMAS + [scenario["submit_tool"]]
-
     messages = [
         {"role": "system", "content": SYSTEM_INSTRUCTION},
         {"role": "user", "content": question}
@@ -300,6 +319,9 @@ def investigate(question: str, scenario_key: str, max_steps: int = 15):
     trace = []
 
     for step in range(max_steps):
+        if on_step:
+            on_step(f"Step {step + 1}: thinking...")
+
         response = call_with_retry(
             client.chat.completions.create,
             model=MODEL, messages=messages, tools=tool_schemas,
@@ -316,21 +338,21 @@ def investigate(question: str, scenario_key: str, max_steps: int = 15):
             tool_args = json.loads(tool_call.function.arguments)
 
             if tool_name == "submit_final_answer":
-                print(f"Step {step + 1}: agent submitted final answer, verifying...")
+                if on_step:
+                    on_step(f"Step {step + 1}: verifying final answer...")
                 verification = scenario["verify"](tool_args)
                 trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "verification": verification})
-
                 if verification["verified"]:
                     return tool_args, trace
-
                 messages.append({
                     "role": "tool", "tool_call_id": tool_call.id, "name": tool_name,
                     "content": json.dumps({"verified": False, "message": verification["reason"] + " Please investigate further and resubmit."})
                 })
                 continue
 
+            if on_step:
+                on_step(f"Step {step + 1}: running a database query...")
             tool_fn = AVAILABLE_TOOLS[tool_name]
-            print(f"Step {step + 1}: calling {tool_name}({tool_args})")
             result = tool_fn(**tool_args)
             trace.append({"step": step + 1, "tool": tool_name, "args": tool_args, "result": result})
             messages.append({"role": "tool", "tool_call_id": tool_call.id, "name": tool_name, "content": json.dumps(result)})

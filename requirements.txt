@@ -5,3 +5,4 @@ streamlit
 google-genai
 groq
 pytest
+plotly
